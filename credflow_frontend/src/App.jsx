@@ -1,17 +1,18 @@
-import LoginPage from './pages/LoginPage'
 import { Routes, Route, Outlet, Navigate, useLocation } from 'react-router-dom';
-import { ThemeProvider, useTheme } from './context/ThemeProvider';
-import Navbar from './components/ui/Navbar';
-import Sidebar from './components/ui/Sidebar';
-import Footer from './components/ui/Footer';
-import DashboardPage from './pages/DashboardPage';
-import RegisterPage from './pages/RegisterPage';
-import { useAuth } from './context/AuthContext';
-import AuthLayout from './layouts/AuthLayout';import ProtectedRoute from './routes/ProtectedRoute';
+import { ThemeProvider } from '@/context/ThemeProvider';
+import Navbar from '@/components/ui/Navbar';
+import Sidebar from '@/components/ui/Sidebar';
+import Footer from '@/components/ui/Footer';
+import DashboardPage from '@/pages/DashboardPage';
+import LoginPage from '@/features/authentication/pages/LoginPage'
+import RegisterPage from '@/features/authentication/pages/RegisterPage';
+import { useAuth } from '@/features/authentication/context/AuthContext';
+import AuthLayout from '@/features/authentication/layouts/AuthLayout';
+import ProtectedRoute from '@/routes/ProtectedRoute';
 import { useState } from 'react';
 
 const Layout = () => {
-  const { user } = useAuth(); // Get user from AuthContext
+  const { user } = useAuth(); 
   const location = useLocation();
   const isAuthPage = location.pathname === '/login' || location.pathname === '/register';
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);

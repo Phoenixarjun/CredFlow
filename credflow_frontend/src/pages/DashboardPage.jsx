@@ -1,6 +1,6 @@
 import React from 'react';
 import { Heading, Text, Flex } from '@radix-ui/themes';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '@/features/authentication/context/AuthContext';
 
 const DashboardPage = () => {
     const { user } = useAuth();
