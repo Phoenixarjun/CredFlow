@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Sun, Moon, Menu, X, Home, Settings, Users, DollarSign, BarChart, LogOut, Bell, User, ChevronDown } from 'lucide-react';
 import { useTheme } from '@/context/ThemeProvider';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '@/features/authentication/context/AuthContext';
 
 const Navbar = () => {
     const { theme, toggleTheme } = useTheme();
