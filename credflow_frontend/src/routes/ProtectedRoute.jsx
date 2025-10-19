@@ -1,17 +1,26 @@
-import React from 'react'
-import { Navigate, Outlet } from 'react-router-dom'
-import { useAuth } from '@/features/authentication/context/AuthContext'
-import { useLocation } from 'react-router-dom';
+import React from 'react';
+import { useAuth } from '@/features/authentication/context/AuthContext';
+import { Navigate, useLocation } from 'react-router-dom';
+import LoadingSpinner from '@/components/ui/LoadingSpinner'; // <-- 1. Import
 
-const ProtectedRoute = () => {
-  const { user, loading } = useAuth()
-  const location = useLocation();
 
-  if (loading) {
-    return <div>Loading...</div>;
-  }
+const ProtectedRoute = ({ children, role }) => {
+    const { user, loading } = useAuth();
+    const location = useLocation();
 
-  return user ? <Outlet /> : <Navigate to="/login" state={{ from: location }} replace />;
-}
+    if (loading) {
+        return <LoadingSpinner text="Loading session..." />;
+    }
 
-export default ProtectedRoute
+    if (!user) {
+        return <Navigate to="/login" state={{ from: location }} replace />;
+    }
+
+    if (user.roleName !== role) {
+        return <Navigate to="/login" state={{ from: location }} replace />;
+    }
+
+    return children;
+};
+
+export default ProtectedRoute;

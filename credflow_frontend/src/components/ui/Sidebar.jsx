@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Home, Settings, Users, DollarSign, BarChart, ChevronLeft, ChevronRight, Shield, Activity } from 'lucide-react';
 import { useTheme } from '@/context/ThemeProvider';
 import { useAuth } from '@/features/authentication/context/AuthContext';
+import { RoleName } from '@/enums/RoleName'; // <-- Import our RoleName enum
 
 const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
     const { theme } = useTheme();
@@ -10,33 +11,32 @@ const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
     const location = useLocation();
 
     const sidebarLinks = {
-        ADMIN: [
+        [RoleName.ADMIN]: [
             { path: '/admin/dashboard', label: 'Dashboard', icon: <Home size={20} />, badge: null },
             { path: '/admin/rules', label: 'Rules Engine', icon: <Settings size={20} />, badge: 'AI' },
             { path: '/admin/bpo', label: 'BPO Tasks', icon: <Users size={20} />, badge: '12' },
             { path: '/admin/logs', label: 'Analytics', icon: <BarChart size={20} />, badge: null },
             { path: '/admin/security', label: 'Security', icon: <Shield size={20} />, badge: null },
         ],
-        CUSTOMER: [
+        [RoleName.CUSTOMER]: [
             { path: '/customer/status', label: 'Account Status', icon: <Home size={20} />, badge: null },
             { path: '/customer/payments', label: 'Payments', icon: <DollarSign size={20} />, badge: '2' },
             { path: '/customer/help', label: 'Support', icon: <Settings size={20} />, badge: null },
-            { path: '/customer/activity', label: 'Activity Log', icon: <Activity size={20} />, badge: null },
         ],
-        BPO: [
+        [RoleName.BPO_AGENT]: [ 
             { path: '/bpo/tasks', label: 'Task Queue', icon: <Home size={20} />, badge: '8' },
             { path: '/bpo/calls', label: 'Call Logs', icon: <Users size={20} />, badge: null },
             { path: '/bpo/performance', label: 'Performance', icon: <BarChart size={20} />, badge: null },
         ],
     };
 
-    const links = sidebarLinks[user?.role] || [];
+    const links = sidebarLinks[user?.roleName] || [];
 
     const getRoleColor = (role) => {
         const colors = {
-            ADMIN: 'from-purple-500 to-pink-500',
-            CUSTOMER: 'from-blue-500 to-cyan-500',
-            BPO: 'from-green-500 to-emerald-500'
+            [RoleName.ADMIN]: 'from-purple-500 to-pink-500',
+            [RoleName.CUSTOMER]: 'from-blue-500 to-cyan-500',
+            [RoleName.BPO_AGENT]: 'from-green-500 to-emerald-500' // <-- FIX: Key changed
         };
         return colors[role] || 'from-gray-500 to-gray-600';
     };
@@ -48,9 +48,8 @@ const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
             } ${theme === 'dark' 
                 ? 'bg-gray-900/80 border-r border-gray-700' 
                 : 'bg-white/80 border-r border-blue-100'
-            } backdrop-blur-lg`}
+            } backdrop-blur-lg hidden md:block`} // <-- Added 'hidden md:block' to work with App.jsx
         >
-            {/* Collapse Toggle */}
             <button
                 onClick={() => setIsCollapsed(!isCollapsed)}
                 className={`absolute -right-3 top-6 p-1 rounded-full border transition-all duration-300 ${
@@ -66,7 +65,6 @@ const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
             </button>
 
             <div className="p-6">
-                {/* User Profile Section */}
                 {!isCollapsed && (
                     <div className={`mb-8 p-4 rounded-xl transition-all duration-300 ${
                         theme === 'dark' 
@@ -74,18 +72,17 @@ const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
                             : 'bg-blue-50/50 border border-blue-200'
                     }`}>
                         <div className="flex items-center space-x-3">
-                            <div className={`p-2 rounded-lg bg-gradient-to-r ${getRoleColor(user?.role)}`}>
+                            <div className={`p-2 rounded-lg bg-gradient-to-r ${getRoleColor(user?.roleName)}`}>
                                 <Users size={16} className="text-white" />
                             </div>
                             <div className="flex-1 min-w-0">
-                                <p className="text-sm font-semibold truncate">{user?.name}</p>
-                                <p className="text-xs opacity-60 capitalize">{user?.role?.toLowerCase()}</p>
+                                <p className="text-sm font-semibold truncate">{user?.fullName}</p>
+                                <p className="text-xs opacity-60 capitalize">{user?.roleName?.toLowerCase()}</p>
                             </div>
                         </div>
                     </div>
                 )}
 
-                {/* Navigation Links */}
                 <nav className="space-y-2">
                     {links.map(link => {
                         const isActive = location.pathname.startsWith(link.path);
@@ -114,7 +111,6 @@ const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
                                     )}
                                 </div>
                                 
-                                {/* Badge */}
                                 {link.badge && !isCollapsed && (
                                     <span className={`px-2 py-1 text-xs rounded-full transition-all duration-300 ${
                                         isActive
@@ -129,14 +125,12 @@ const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
                                     </span>
                                 )}
 
-                                {/* Active Indicator */}
                                 {isActive && (
                                     <div className={`absolute left-0 top-1/2 transform -translate-y-1/2 w-1 h-8 rounded-r ${
                                         theme === 'dark' ? 'bg-blue-400' : 'bg-blue-500'
                                     }`}></div>
                                 )}
 
-                                {/* Tooltip for collapsed state */}
                                 {isCollapsed && (
                                     <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-sm rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-50">
                                         {link.label}
@@ -148,7 +142,6 @@ const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
                     })}
                 </nav>
 
-                {/* Bottom Section */}
                 {!isCollapsed && (
                     <div className={`mt-8 p-4 rounded-xl transition-all duration-300 ${
                         theme === 'dark' 

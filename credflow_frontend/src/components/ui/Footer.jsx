@@ -16,14 +16,7 @@ const Footer = () => {
                 <div className="flex flex-col lg:flex-row justify-between items-center space-y-6 lg:space-y-0">
                     {/* Brand Section */}
                     <div className="flex flex-col items-center lg:items-start space-y-3">
-                        <div className="flex items-center space-x-2">
-                            <div className={`w-3 h-3 rounded-full ${
-                                theme === 'dark' ? 'bg-blue-400' : 'bg-blue-500'
-                            }`}></div>
-                            <span className="text-2xl font-bold credflow-gradient bg-gradient-to-r from-blue-500 to-purple-600">
-                                CredFlow
-                            </span>
-                        </div>
+                        <img src="/logo.png" alt="CredFlow Logo" className='h-14'/>
                         <p className={`text-sm ${
                             theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
                         }`}>

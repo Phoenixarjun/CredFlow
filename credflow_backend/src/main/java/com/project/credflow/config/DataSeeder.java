@@ -3,17 +3,16 @@ package com.project.credflow.config;
 import com.project.credflow.enums.RoleName;
 import com.project.credflow.model.Role;
 import com.project.credflow.repository.RoleRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
 @Component
+@RequiredArgsConstructor
 public class DataSeeder implements CommandLineRunner {
 
     private final RoleRepository roleRepository;
 
-    public DataSeeder(RoleRepository roleRepository) {
-        this.roleRepository = roleRepository;
-    }
 
     @Override
     public void run(String... args) throws Exception {

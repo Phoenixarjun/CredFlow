@@ -1,6 +1,7 @@
 package com.project.credflow.config;
 
 import com.project.credflow.security.JwtAuthFilter;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -25,13 +26,11 @@ import static org.springframework.security.config.Customizer.withDefaults; // <-
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
+@RequiredArgsConstructor
 public class SecurityConfig {
 
     private final JwtAuthFilter jwtAuthFilter;
 
-    public SecurityConfig(JwtAuthFilter jwtAuthFilter) {
-        this.jwtAuthFilter = jwtAuthFilter;
-    }
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -71,8 +70,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.OPTIONS, "/api/**").permitAll()
 
                         .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/api/customer/**").hasRole("CUSTOMER")
                         .requestMatchers("/api/admin/**").permitAll()
-                        .requestMatchers("/api/customer/**").permitAll()
                         .requestMatchers("/api/bpo/**").permitAll()
                         .requestMatchers("/api/payment/**").permitAll()
                         .anyRequest().authenticated()
