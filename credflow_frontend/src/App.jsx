@@ -1,61 +1,68 @@
+import { useState } from 'react';
 import { Routes, Route, Outlet, Navigate, useLocation } from 'react-router-dom';
 import { ThemeProvider } from '@/context/ThemeProvider';
-import Navbar from '@/components/ui/Navbar';
-import Sidebar from '@/components/ui/Sidebar';
-import Footer from '@/components/ui/Footer';
-import DashboardPage from '@/pages/DashboardPage';
-import LoginPage from '@/features/authentication/pages/LoginPage'
-import RegisterPage from '@/features/authentication/pages/RegisterPage';
-import { useAuth } from '@/features/authentication/context/AuthContext';
+
+import ProtectedRoute from '@/routes/ProtectedRoute'; 
+
+import { RoleName } from '@/enums/RoleName'; 
+
 import AuthLayout from '@/features/authentication/layouts/AuthLayout';
-import ProtectedRoute from '@/routes/ProtectedRoute';
-import { useState } from 'react';
+import DashboardLayout from '@/layouts/DashboardLayout';
 
-const Layout = () => {
-  const { user } = useAuth(); 
-  const location = useLocation();
-  const isAuthPage = location.pathname === '/login' || location.pathname === '/register';
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+import LoginPage from '@/features/authentication/pages/LoginPage';
+import RegisterPage from '@/features/authentication/pages/RegisterPage';
+import NotFoundPage from '@/pages/NotFoundPage';
 
-  return (
-    <div className="min-h-screen flex flex-col bg-background">
-      <Navbar />
-      <div className="flex flex-1">
-        {user && !isAuthPage && <Sidebar isCollapsed={isSidebarCollapsed} setIsCollapsed={setIsSidebarCollapsed} />}
-        <main className={`flex flex-col flex-1 mt-16 transition-all duration-500 ${user && !isAuthPage 
-            ? (isSidebarCollapsed ? 'md:ml-20' : 'md:ml-64') : ''}`}>
-          <div className={`flex-grow ${isAuthPage ? 'p-0' : 'p-4 md:p-6'}`}>
-              <Outlet />
-          </div>
-          {!isAuthPage && <Footer />}
-        </main>
-      </div>
-      </div>
-  );
-};
+
+
+import CustomerStatusPage from '@/features/customer/pages/StatusPage';
+
+
+const DashboardPage = () => <div>Generic Dashboard</div>;
+const AdminRulesPage = () => <div>Admin Rules Page</div>;
+const AdminBpoPage = () => <div>Admin BPO Page</div>;
+const AdminLogsPage = () => <div>Admin Logs Page</div>;
+const CustomerPaymentsPage = () => <div>Customer Payments Page</div>;
+const CustomerHelpPage = () => <div>Customer Help Page</div>;
+const BpoTasksPage = () => <div>BPO Tasks Page</div>;
+const BpoCallsPage = () => <div>BPO Calls Page</div>;
+
+
+
+
 
 function App() {
   return (
-    <Routes>
-          <Route element={<ThemeProvider><Layout /></ThemeProvider>}>
+    <ThemeProvider>
+      <Routes>
+
+          <Route element={<DashboardLayout />}>
+            
             <Route path="/login" element={<AuthLayout formType="login"><LoginPage /></AuthLayout>} />
             <Route path="/register" element={<AuthLayout formType="register"><RegisterPage /></AuthLayout>} />
 
-            <Route element={<ProtectedRoute />}>
-              <Route path="/" element={<Navigate to="/dashboard" replace />} />
-              <Route path="/dashboard" element={<DashboardPage />} />
-              <Route path="/admin/dashboard" element={<DashboardPage />} />
-              <Route path="/admin/rules" element={<DashboardPage />} />
-              <Route path="/admin/bpo" element={<DashboardPage />} />
-              <Route path="/admin/logs" element={<DashboardPage />} />
-              <Route path="/customer/status" element={<DashboardPage />} />
-              <Route path="/customer/payments" element={<DashboardPage />} />
-              <Route path="/customer/help" element={<DashboardPage />} />
-              <Route path="/bpo/tasks" element={<DashboardPage />} />
-              <Route path="/bpo/calls" element={<DashboardPage />} />
-            </Route>
-      </Route>
-    </Routes>
+            <Route path="/" element={<Navigate to="/customer/status" replace />} />
+
+
+            <Route path="/admin/dashboard" element={<ProtectedRoute role={RoleName.ADMIN}><DashboardPage /></ProtectedRoute>} />
+            <Route path="/admin/rules" element={<ProtectedRoute role={RoleName.ADMIN}><AdminRulesPage /></ProtectedRoute>} />
+            <Route path="/admin/bpo" element={<ProtectedRoute role={RoleName.ADMIN}><AdminBpoPage /></ProtectedRoute>} />
+            <Route path="/admin/logs" element={<ProtectedRoute role={RoleName.ADMIN}><AdminLogsPage /></ProtectedRoute>} />
+
+
+            <Route path="/customer/status" element={<ProtectedRoute role={RoleName.CUSTOMER}><CustomerStatusPage /></ProtectedRoute>} />
+            <Route path="/customer/payments" element={<ProtectedRoute role={RoleName.CUSTOMER}><CustomerPaymentsPage /></ProtectedRoute>} />
+            <Route path="/customer/help" element={<ProtectedRoute role={RoleName.CUSTOMER}><CustomerHelpPage /></ProtectedRoute>} />
+
+
+            <Route path="/bpo/tasks" element={<ProtectedRoute role={RoleName.BPO_AGENT}><BpoTasksPage /></ProtectedRoute>} />
+            <Route path="/bpo/calls" element={<ProtectedRoute role={RoleName.BPO_AGENT}><BpoCallsPage /></ProtectedRoute>} />
+
+
+            <Route path="*" element={<NotFoundPage />} />
+          </Route>
+      </Routes>
+    </ThemeProvider>
   )
 }
 

@@ -12,6 +12,7 @@ import com.project.credflow.repository.RoleRepository;
 import com.project.credflow.repository.UserRepository;
 import com.project.credflow.security.JwtUtil;
 import com.project.credflow.service.inter.AuthService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -21,7 +22,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.project.credflow.dto.UserDto;
 
+import com.project.credflow.model.Customer;
+import com.project.credflow.repository.CustomerRepository;
+import com.project.credflow.enums.RoleName;
+
+
 @Service
+@RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
 
     private final UserRepository userRepository;
@@ -30,20 +37,8 @@ public class AuthServiceImpl implements AuthService {
     private final JwtUtil jwtUtil;
     private final AuthenticationManager authenticationManager;
     private final UserMapper userMapper;
+    private final CustomerRepository customerRepository;
 
-    public AuthServiceImpl(UserRepository userRepository,
-                           RoleRepository roleRepository,
-                           PasswordEncoder passwordEncoder,
-                           JwtUtil jwtUtil,
-                           AuthenticationManager authenticationManager,
-                           UserMapper userMapper) {
-        this.userRepository = userRepository;
-        this.roleRepository = roleRepository;
-        this.passwordEncoder = passwordEncoder;
-        this.jwtUtil = jwtUtil;
-        this.authenticationManager = authenticationManager;
-        this.userMapper = userMapper;
-    }
 
     @Override
     @Transactional
@@ -61,11 +56,19 @@ public class AuthServiceImpl implements AuthService {
         user.setPasswordHash(passwordEncoder.encode(registerRequest.getPassword()));
         user.setPhoneNumber(registerRequest.getPhoneNumber());
         user.setRole(userRole);
-        user.setIsActive(true); // Activate user on registration
+        user.setIsActive(true);
 
         User savedUser = userRepository.save(user);
 
-        // TODO: Add logic here to create a Customer entity if role is CUSTOMER
+       if(userRole.getRoleName() == RoleName.CUSTOMER){
+           Customer customer = new Customer();
+           customer.setUser(savedUser);
+
+           customer.setCompanyName(savedUser.getFullName());
+           customer.setContactPerson(savedUser.getFullName());
+
+           customerRepository.save(customer);
+       }
 
         String token = jwtUtil.generateToken(savedUser);
         return new AuthResponse(token, userMapper.toUserDto(savedUser));
