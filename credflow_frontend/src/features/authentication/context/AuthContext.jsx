@@ -14,9 +14,12 @@ export const AuthProvider = ({ children }) => {
                 try {
                     apiClient.defaults.headers.common['Authorization'] = `Bearer ${token}`;
                     
+                    // Fetch the user profile from the backend
                     const response = await apiClient.get('/auth/profile');
                     
-                    setUser(response.data);
+                    // **THE FIX**: Combine the profile (response.data) and the token
+                    setUser({ ...response.data, token: token }); 
+
                 } catch (error) {
                     console.error("Failed to load user from token:", error);
                     localStorage.removeItem('token'); // Clear the bad token
@@ -32,19 +35,29 @@ export const AuthProvider = ({ children }) => {
     const login = async (email, password) => {
         const response = await apiClient.post('/auth/login', { email, password });
         const { jwtToken, user: loggedInUser } = response.data;
+        
         localStorage.setItem('token', jwtToken);
         apiClient.defaults.headers.common['Authorization'] = `Bearer ${jwtToken}`;
-        setUser(loggedInUser);
-        return loggedInUser;
+        
+        // **THE FIX**: Combine the user object and the token
+        const userWithToken = { ...loggedInUser, token: jwtToken };
+        setUser(userWithToken);
+        
+        return userWithToken; // Return the combined object
     };
 
     const register = async (registerData) => {
         const response = await apiClient.post('/auth/register', registerData);
         const { jwtToken, user: registeredUser } = response.data;
+
         localStorage.setItem('token', jwtToken);
         apiClient.defaults.headers.common['Authorization'] = `Bearer ${jwtToken}`;
-        setUser(registeredUser);
-        return registeredUser;
+
+        // **THE FIX**: Combine the user object and the token
+        const userWithToken = { ...registeredUser, token: jwtToken };
+        setUser(userWithToken);
+
+        return userWithToken; // Return the combined object
     };
 
     const logout = () => {
