@@ -1,67 +1,83 @@
-import { useState } from 'react';
-import { Routes, Route, Outlet, Navigate, useLocation } from 'react-router-dom';
+import React, { Suspense, lazy } from 'react';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider } from '@/context/ThemeProvider';
 
 import ProtectedRoute from '@/routes/ProtectedRoute'; 
-
 import { RoleName } from '@/enums/RoleName'; 
 
+// --- Layouts ---
 import AuthLayout from '@/features/authentication/layouts/AuthLayout';
-import DashboardLayout from '@/layouts/DashboardLayout';
+import DashboardLayout from '@/layouts/DashboardLayout'; // <-- Your main layout
 
-import LoginPage from '@/features/authentication/pages/LoginPage';
-import RegisterPage from '@/features/authentication/pages/RegisterPage';
-import NotFoundPage from '@/pages/NotFoundPage';
+// --- UI ---
+import LoadingSpinner from '@/components/ui/LoadingSpinner'; // For Suspense
 
+// --- Lazy-load ALL pages ---
 
+// Auth
+const LoginPage = lazy(() => import('@/features/authentication/pages/LoginPage'));
+const RegisterPage = lazy(() => import('@/features/authentication/pages/RegisterPage'));
 
-import CustomerStatusPage from '@/features/customer/pages/StatusPage';
+// Customer
+const CustomerStatusPage = lazy(() => import('@/features/customer/pages/StatusPage'));
+// (Placeholders for pages we haven't built - pointing to NotFound for now)
+const CustomerPaymentsPage = lazy(() => import('@/pages/NotFoundPage')); 
+const CustomerHelpPage = lazy(() => import('@/pages/NotFoundPage')); 
 
+// Admin
+// (Placeholders for pages we haven't built - pointing to NotFound for now)
+const AdminDashboardPage = lazy(() => import('@/features/admin/pages/AdminDashboardPage')); 
+const AdminBpoPage = lazy(() => import('@/pages/NotFoundPage')); 
+const AdminLogsPage = lazy(() => import('@/pages/NotFoundPage')); 
+// --- This is the REAL page we just built ---
+const AdminRulesPage = lazy(() => import('@/features/admin/pages/RulesManagementPage')); 
 
-const DashboardPage = () => <div>Generic Dashboard</div>;
-const AdminRulesPage = () => <div>Admin Rules Page</div>;
-const AdminBpoPage = () => <div>Admin BPO Page</div>;
-const AdminLogsPage = () => <div>Admin Logs Page</div>;
-const CustomerPaymentsPage = () => <div>Customer Payments Page</div>;
-const CustomerHelpPage = () => <div>Customer Help Page</div>;
-const BpoTasksPage = () => <div>BPO Tasks Page</div>;
-const BpoCallsPage = () => <div>BPO Calls Page</div>;
+// BPO
+// (Placeholders for pages we haven't built - pointing to NotFound for now)
+const BpoTasksPage = lazy(() => import('@/pages/NotFoundPage')); 
+const BpoCallsPage = lazy(() => import('@/pages/NotFoundPage')); 
 
-
-
-
+// General
+const NotFoundPage = lazy(() => import('@/pages/NotFoundPage'));
 
 function App() {
   return (
     <ThemeProvider>
-      <Routes>
+      <Suspense fallback={<LoadingSpinner text="Loading..." isFullScreen />}>
+        <Routes>
 
+          {/* --- Main Route Wrapper with DashboardLayout --- */}
           <Route element={<DashboardLayout />}>
             
+            {/* Auth Routes */}
             <Route path="/login" element={<AuthLayout formType="login"><LoginPage /></AuthLayout>} />
             <Route path="/register" element={<AuthLayout formType="register"><RegisterPage /></AuthLayout>} />
 
+            {/* Root Redirect */}
             <Route path="/" element={<Navigate to="/customer/status" replace />} />
 
-
-            <Route path="/admin/dashboard" element={<ProtectedRoute role={RoleName.ADMIN}><DashboardPage /></ProtectedRoute>} />
+            {/* Admin Routes (FIXED: using role={...}) */}
+            <Route path="/admin/dashboard" element={<ProtectedRoute role={RoleName.ADMIN}><AdminDashboardPage /></ProtectedRoute>} />
             <Route path="/admin/rules" element={<ProtectedRoute role={RoleName.ADMIN}><AdminRulesPage /></ProtectedRoute>} />
             <Route path="/admin/bpo" element={<ProtectedRoute role={RoleName.ADMIN}><AdminBpoPage /></ProtectedRoute>} />
             <Route path="/admin/logs" element={<ProtectedRoute role={RoleName.ADMIN}><AdminLogsPage /></ProtectedRoute>} />
 
-
+            {/* Customer Routes (FIXED: using role={...}) */}
             <Route path="/customer/status" element={<ProtectedRoute role={RoleName.CUSTOMER}><CustomerStatusPage /></ProtectedRoute>} />
             <Route path="/customer/payments" element={<ProtectedRoute role={RoleName.CUSTOMER}><CustomerPaymentsPage /></ProtectedRoute>} />
             <Route path="/customer/help" element={<ProtectedRoute role={RoleName.CUSTOMER}><CustomerHelpPage /></ProtectedRoute>} />
 
-
+            {/* BPO Routes (FIXED: using role={...}) */}
             <Route path="/bpo/tasks" element={<ProtectedRoute role={RoleName.BPO_AGENT}><BpoTasksPage /></ProtectedRoute>} />
             <Route path="/bpo/calls" element={<ProtectedRoute role={RoleName.BPO_AGENT}><BpoCallsPage /></ProtectedRoute>} />
 
-
+            {/* 404 Not Found */}
             <Route path="*" element={<NotFoundPage />} />
+            
           </Route>
-      </Routes>
+          
+        </Routes>
+      </Suspense>
     </ThemeProvider>
   )
 }
