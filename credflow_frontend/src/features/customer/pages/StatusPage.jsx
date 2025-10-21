@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Flex, Heading, Text, Box, Card, Grid } from '@radix-ui/themes';
 import { useCustomerData } from '../hooks/useCustomerData';
-import LoadingSpinner from '@/components/ui/LoadingSpinner';
+import LoadingSpinner from '@/components/common/LoadingSpinner';
 import ErrorDisplay from '@/components/ui/ErrorDisplay';
 import AccountSummary from '../components/AccountSummary.jsx';
 import InvoiceTable from '../components/InvoiceTable';

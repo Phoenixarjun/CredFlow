@@ -2,7 +2,11 @@ package com.project.credflow.enums;
 
 public enum PaymentMethod {
     CREDIT_CARD,
-    BANK_TRANSFER,
+    DEBIT_CARD,
+    NET_BANKING,
     UPI,
-    CASH
+    QR_CODE,
+    WALLET,
+    MANUAL,
+    OTHER
 }

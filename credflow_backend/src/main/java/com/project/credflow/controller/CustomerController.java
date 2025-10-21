@@ -37,6 +37,12 @@ public class CustomerController {
         return ResponseEntity.ok(accounts);
     }
 
+    @GetMapping("/invoices")
+    public ResponseEntity<List<InvoiceDto>> getAllMyInvoices(@AuthenticationPrincipal User user) {
+        List<InvoiceDto> invoices = customerService.getAllCustomerInvoices(user);
+        return ResponseEntity.ok(invoices);
+    }
+
     @GetMapping("/accounts/{accountId}/invoices")
     public ResponseEntity<List<InvoiceDto>> getInvoicesForAccount(
             @AuthenticationPrincipal User user,

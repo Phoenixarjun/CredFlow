@@ -4,17 +4,14 @@ import { RocketIcon, CalendarIcon } from '@radix-ui/react-icons';
 import apiClient from '@/services/apiClient';
 import { toast } from 'sonner';
 
-// Import our new components and hooks
 import StatCard from '../components/StatCard';
 import { useAdminStats } from '../hooks/useAdminStats';
 import { useAdminKpis } from '../hooks/useAdminKpis';
 
-// Helper to format JS Date to 'YYYY-MM-DD'
 const toISODateString = (date) => {
     return date.toISOString().split('T')[0];
 };
 
-// Helper to format date/time nicely
 const formatDateTime = (isoString) => {
     if (!isoString) return "Never";
     return new Date(isoString).toLocaleString(undefined, {
@@ -33,18 +30,14 @@ const AdminDashboardPage = () => {
         endDate: toISODateString(new Date()) // Today
     });
 
-    // --- Hooks ---
     const { stats, isLoadingStats, fetchLiveStats } = useAdminStats();
     const { kpis, isLoadingKpis, fetchKpis } = useAdminKpis();
 
-    // Initial load for date-ranged KPIs
     useEffect(() => {
         fetchKpis(dateRange);
-    }, [fetchKpis]); // fetchKpis is memoized by useCallback, dateRange is not needed
+    }, [fetchKpis]);
     
-    // --- Event Handlers ---
 
-    // Manual Run Engine Handler
     const handleRunEngine = async () => {
         setIsRunningEngine(true);
         toast.info("Dunning engine started manually...");
@@ -52,7 +45,6 @@ const AdminDashboardPage = () => {
             const response = await apiClient.post('/admin/dashboard/run-engine');
             toast.success(response.data.message || "Dunning process completed!");
             
-            // Re-fetch all stats after engine runs
             fetchLiveStats();
             fetchKpis(dateRange);
         } catch (error) {

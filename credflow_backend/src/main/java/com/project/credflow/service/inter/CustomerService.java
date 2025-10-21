@@ -19,6 +19,7 @@ public interface CustomerService {
 
     List<InvoiceDto> getInvoicesForAccount(User user, UUID accountId);
 
+    List<InvoiceDto> getAllCustomerInvoices(User user);
 
     List<PaymentDto> getPaymentsForInvoice(User user, UUID invoiceId);
 }

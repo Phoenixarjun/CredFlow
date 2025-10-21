@@ -9,7 +9,7 @@ import { useNotificationTemplates } from '../hooks/useNotificationTemplates'; //
 // --- Import Components ---
 import RulesTable from '../components/RulesTable';
 import RuleFormModal from '../components/RuleFormModal';
-import LoadingSpinner from '@/components/ui/LoadingSpinner';
+import LoadingSpinner from '@/components/common/LoadingSpinner';
 import ErrorDisplay from '@/components/ui/ErrorDisplay';
 
 const RulesManagementPage = () => {

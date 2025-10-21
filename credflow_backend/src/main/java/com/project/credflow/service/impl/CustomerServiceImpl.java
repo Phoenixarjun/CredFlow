@@ -19,6 +19,7 @@ import com.project.credflow.service.inter.CustomerService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -78,6 +79,24 @@ public class CustomerServiceImpl implements CustomerService {
         List<Invoice> invoices = invoiceRepository.findByAccount_AccountId(accountId);
 
         return invoices.stream()
+                .map(invoiceMapper::toInvoiceDto)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<InvoiceDto> getAllCustomerInvoices(User user) {
+        Customer customer = getCustomerFromPrincipal(user);
+        List<Account> accounts = accountRepository.findByCustomer_CustomerId(customer.getCustomerId());
+
+        List<Invoice> allInvoices = new ArrayList<>();
+        for (Account account : accounts) {
+            allInvoices.addAll(invoiceRepository.findByAccount_AccountId(account.getAccountId()));
+        }
+
+        allInvoices.sort((inv1, inv2) -> inv2.getDueDate().compareTo(inv1.getDueDate()));
+
+        return allInvoices.stream()
                 .map(invoiceMapper::toInvoiceDto)
                 .collect(Collectors.toList());
     }
