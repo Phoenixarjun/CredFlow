@@ -1,5 +1,6 @@
 package com.project.credflow.service.impl;
 
+import com.project.credflow.enums.InvoiceStatus;
 import com.project.credflow.model.DunningExecutionLog;
 import com.project.credflow.model.DunningRule;
 import com.project.credflow.model.Invoice;
@@ -41,7 +42,7 @@ public class DunningEngineServiceImpl implements DunningEngineService {
         // 1. Fetch all 'OVERDUE' invoices. (Ensure you have this method in InvoiceRepository)
         // Let's assume you need to create this method in InvoiceRepository:
         // List<Invoice> findByStatus(String status);
-        List<Invoice> overdueInvoices = invoiceRepository.findByStatus("OVERDUE");
+        List<Invoice> overdueInvoices = invoiceRepository.findByStatus(InvoiceStatus.OVERDUE);
         log.info("Found {} overdue invoices.", overdueInvoices.size());
 
         // 2. Fetch all 'active' dunning rules, ordered by priority.

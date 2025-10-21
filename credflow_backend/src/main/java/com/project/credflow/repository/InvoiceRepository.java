@@ -1,6 +1,7 @@
 package com.project.credflow.repository;
 
 import com.project.credflow.model.Invoice;
+import com.project.credflow.enums.InvoiceStatus; // <-- 1. IMPORT THE ENUM
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -12,13 +13,12 @@ import java.util.UUID;
 @Repository
 public interface InvoiceRepository extends JpaRepository<Invoice, UUID> {
 
-    List<Invoice> findByStatus(String status);
-
     List<Invoice> findByAccount_AccountId(UUID accountId);
 
-    long countByStatus(String status);
+    List<Invoice> findByStatus(InvoiceStatus status);
 
+    long countByStatus(InvoiceStatus status);
 
     @Query("SELECT SUM(i.amountDue) FROM Invoice i WHERE i.status = :status")
-    BigDecimal sumAmountDueByStatus(String status);
+    BigDecimal sumAmountDueByStatus(InvoiceStatus status);
 }

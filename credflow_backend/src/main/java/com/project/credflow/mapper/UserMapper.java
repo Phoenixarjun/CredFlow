@@ -1,23 +1,27 @@
-// in: com.project.credflow.mapper.UserMapper.java
 package com.project.credflow.mapper;
 
 import com.project.credflow.dto.UserDto;
 import com.project.credflow.model.User;
-import org.springframework.stereotype.Component;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.Named;
+import org.mapstruct.factory.Mappers;
 
-@Component
-public class UserMapper {
+import java.util.UUID;
 
-    public UserDto toUserDto(User user) {
-        if (user == null) {
-            return null;
-        }
-        UserDto dto = new UserDto();
-        dto.setUserId(user.getUserId());
-        dto.setFullName(user.getFullName());
-        dto.setEmail(user.getEmail());
-        dto.setPhoneNumber(user.getPhoneNumber());
-        dto.setRoleName(user.getRole().getRoleName().name());
-        return dto;
+@Mapper(componentModel = "spring")
+public interface UserMapper {
+
+    UserMapper INSTANCE = Mappers.getMapper(UserMapper.class);
+
+    @Mapping(source = "userId", target = "userId", qualifiedByName = "uuidToString")
+    @Mapping(source = "role.roleName", target = "roleName") // This automatically converts the enum to a String
+    @Mapping(source = "phoneNumber", target = "phoneNumber")
+    @Mapping(source = "createdAt", target = "createdAt")
+    UserDto toUserDto(User user);
+
+    @Named("uuidToString")
+    default String uuidToString(UUID id) {
+        return (id != null) ? id.toString() : null;
     }
 }

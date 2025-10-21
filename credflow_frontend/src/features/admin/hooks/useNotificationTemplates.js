@@ -18,13 +18,13 @@ export const useNotificationTemplates = () => {
         setLoading(true);
         setError(null);
         try {
-            console.log("Attempting to fetch /admin/notification-templates..."); // <-- MOVE LOG HERE
+            console.log("Attempting to fetch /admin/notification-templates..."); 
             const response = await apiClient.get('/admin/notification-templates', {
                     headers: {
                         Authorization: `Bearer ${user.token}`,
                     },
                 });
-                console.log('Fetched Templates Raw:', response); // This will now only log on success
+                console.log('Fetched Templates Raw:', response); 
                 setTemplates(response.data);
         } catch (err) {
             console.error("Failed to fetch templates:", err);

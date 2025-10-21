@@ -87,7 +87,7 @@ public class SecurityConfig {
                         // Require CUSTOMER role for customer endpoints
                         .requestMatchers("/api/customer/**").hasRole("CUSTOMER")
                         // Temporarily permit BPO and Payment endpoints (adjust as needed)
-                        .requestMatchers("/api/bpo/**").permitAll() // TODO: Secure later with hasRole("BPO_AGENT") or specific logic
+                        .requestMatchers("/api/bpo/**").hasRole("BPO_AGENT")// TODO: Secure later with hasRole("BPO_AGENT") or specific logic
                         .requestMatchers("/api/payment/**").permitAll() // TODO: Secure later based on roles/ownership
                         // Require authentication for any other request
                         .anyRequest().authenticated()

@@ -1,7 +1,7 @@
 import React from 'react';
 import { useAuth } from '@/features/authentication/context/AuthContext';
 import { Navigate, useLocation } from 'react-router-dom';
-import LoadingSpinner from '@/components/ui/LoadingSpinner'; // <-- 1. Import
+import LoadingSpinner from '@/components/common/LoadingSpinner'; // <-- 1. Import
 
 
 const ProtectedRoute = ({ children, role }) => {
