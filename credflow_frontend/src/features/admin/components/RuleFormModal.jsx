@@ -5,11 +5,11 @@ import {
     Flex,
     Button,
     Text,
-    Select,
     Switch,
     Heading,
 } from '@radix-ui/themes';
 
+// Make sure this import path is correct for your project
 import {
     DunningConditionTypes,
     DunningActionTypes,
@@ -17,6 +17,7 @@ import {
     AccountTypes
 } from '@/enums/dunningEnums';
 
+// --- FormRow Component (no changes) ---
 const FormRow = ({ label, htmlFor, error, children }) => (
     <Flex direction="column" gap="1">
         <Text as="label" size="2" weight="medium" mb="1" htmlFor={htmlFor}>
@@ -27,21 +28,23 @@ const FormRow = ({ label, htmlFor, error, children }) => (
     </Flex>
 );
 
+// --- inputClassName helper (no changes) ---
 const inputClassName = (hasError) =>
     `w-full rounded-md border px-3 py-2 text-sm transition-colors duration-200
-     bg-[var(--color-background)] 
-     text-[var(--gray-12)]
-     placeholder:text-[var(--gray-9)]
-     ${hasError
+      bg-[var(--color-background)] 
+      text-[var(--gray-12)]
+      placeholder:text-[var(--gray-9)]
+      ${hasError
         ? 'border-red-500 focus:border-red-500 focus:ring-1 focus:ring-red-500'
         : 'border-[var(--gray-7)] hover:border-[var(--gray-8)] focus:border-[var(--accent-9)] focus:ring-1 focus:ring-[var(--accent-9)]'
     }`;
 
+// --- selectClassName helper (no changes) ---
 const selectClassName = (hasError) =>
     `w-full appearance-none rounded-md border bg-[var(--color-background)] px-3 py-2 pr-8 text-sm transition-colors duration-200
-     text-[var(--gray-12)]
-     dark:bg-[var(--gray-3)]
-     ${hasError
+      text-[var(--gray-12)]
+      dark:bg-[var(--gray-3)]
+      ${hasError
         ? 'border-red-500 focus:border-red-500 focus:ring-1 focus:ring-red-500'
         : 'border-[var(--gray-7)] hover:border-[var(--gray-8)] focus:border-[var(--accent-9)] focus:ring-1 focus:ring-[var(--accent-9)]'
     }
@@ -49,6 +52,8 @@ const selectClassName = (hasError) =>
     [background-image:url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22%236b7280%22%3E%3Cpath%20fill-rule%3D%22evenodd%22%20d%3D%22M4.22%206.22a.75.75%200%200%201%201.06%200L8%208.94l2.72-2.72a.75.75%200%201%201%201.06%201.06l-3.25%203.25a.75.75%200%200%201-1.06%200L4.22%207.28a.75.75%200%200%201%200-1.06Z%22%20clip-rule%3D%22evenodd%22%20%2F%3E%3C%2Fsvg%3E')]
     dark:[background-image:url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22%23d1d5db%22%3E%3Cpath%20fill-rule%3D%22evenodd%22%20d%3D%22M4.22%206.22a.75.75%200%200%201%201.06%200L8%208.94l2.72-2.72a.75.75%200%201%201%201.06%201.06l-3.25%203.25a.75.75%200%200%201-1.06%200L4.22%207.28a.75.75%200%200%201%200-1.06Z%22%20clip-rule%3D%22evenodd%22%20%2F%3E%3C%2Fsvg%3E')]`;
 
+
+// --- RuleFormModal Component (Cleaned up) ---
 const RuleFormModal = ({ isOpen, onClose, onSave, rule, templates = [] }) => {
     const isEditing = Boolean(rule);
 
@@ -69,12 +74,13 @@ const RuleFormModal = ({ isOpen, onClose, onSave, rule, templates = [] }) => {
     const [formData, setFormData] = useState(getInitialFormData());
     const [formErrors, setFormErrors] = useState({});
 
+    // Reset form state when modal opens
     useEffect(() => {
         if (isOpen) {
             setFormData(getInitialFormData());
             setFormErrors({});
         }
-    }, [isOpen, rule]);
+    }, [isOpen, rule]); // 'rule' dependency is correct
 
     const handleChange = (key, value) => {
         setFormData(prev => ({ ...prev, [key]: value }));
@@ -115,18 +121,23 @@ const RuleFormModal = ({ isOpen, onClose, onSave, rule, templates = [] }) => {
         const priorityValue = parseInt(formData.priority, 10);
         const conditionIntValue = formData.conditionValueInteger === '' ? null : parseInt(formData.conditionValueInteger, 10);
         const conditionDecimalValue = formData.conditionValueDecimal === '' ? null : parseFloat(formData.conditionValueDecimal);
+        
+        // Prepare data for saving, nullifying fields that aren't relevant
         const dataToSave = {
             ...formData,
             priority: priorityValue,
+            // Nullify conditional values based on conditionType
             conditionValueInteger: formData.conditionType === 'DAYS_OVERDUE' ? conditionIntValue : null,
             conditionValueDecimal: formData.conditionType === 'MIN_AMOUNT_DUE' ? conditionDecimalValue : null,
             conditionValueString: formData.conditionType === 'ACCOUNT_TYPE' ? formData.conditionValueString : null,
+            // Nullify action-specific values based on actionType
             templateId: formData.actionType === 'SEND_EMAIL' ? formData.templateId : null,
             bpoTaskPriority: formData.actionType === 'CREATE_BPO_TASK' ? formData.bpoTaskPriority : null,
         };
         onSave(dataToSave);
     };
 
+    // Helper to format null/undefined numbers for input fields
     const formatNumberForInput = (value) => (value === null || value === undefined ? '' : String(value));
 
     return (

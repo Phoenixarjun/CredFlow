@@ -19,6 +19,16 @@ public class AccountMapper {
         dto.setStatus(account.getStatus());
         dto.setCurrentBalance(account.getCurrentBalance());
 
+        dto.setCurrentSpeed(account.getCurrentSpeed());
+
+        if (account.getPlan() != null) {
+            dto.setPlanName(account.getPlan().getPlanName());
+            dto.setPlanType(account.getPlan().getPlanType());
+        } else {
+            dto.setPlanName(null);
+            dto.setPlanType(null);
+        }
+
         return dto;
     }
 }

@@ -2,6 +2,7 @@ package com.project.credflow.dto;
 
 import com.project.credflow.enums.AccountStatus;
 import com.project.credflow.enums.AccountType;
+import com.project.credflow.enums.PlanType;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -14,4 +15,7 @@ public class AccountDto {
     private AccountType accountType;
     private AccountStatus status;
     private BigDecimal currentBalance;
+    private String planName;
+    private String currentSpeed;
+    private PlanType planType;
 }
