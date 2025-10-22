@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react'; 
 import apiClient from '@/services/apiClient';
 import { useAuth } from '@/features/authentication/context/AuthContext';
 
@@ -19,27 +19,28 @@ export const useCustomerData = () => {
     const [paymentLoading, setPaymentLoading] = useState(false);
     const [paymentError, setPaymentError] = useState(null);
 
-    useEffect(() => {
+    const fetchData = useCallback(async () => {
         if (!user) return;
-        const fetchData = async () => {
-            setLoading(true);
-            setError(null);
-            try {
-                const [profileResponse, accountsResponse] = await Promise.all([
-                    apiClient.get('/customer/profile'),
-                    apiClient.get('/customer/accounts')
-                ]);
-                setProfile(profileResponse.data);
-                setAccounts(accountsResponse.data);
-            } catch (err) {
-                console.error("Failed to fetch customer data:", err);
-                setError(err.response?.data?.message || 'Failed to load dashboard data.');
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchData();
+        setLoading(true);
+        setError(null);
+        try {
+            const [profileResponse, accountsResponse] = await Promise.all([
+                apiClient.get('/customer/profile'),
+                apiClient.get('/customer/accounts')
+            ]);
+            setProfile(profileResponse.data);
+            setAccounts(accountsResponse.data);
+        } catch (err) {
+            console.error("Failed to fetch customer data:", err);
+            setError(err.response?.data?.message || 'Failed to load dashboard data.');
+        } finally {
+            setLoading(false);
+        }
     }, [user]); 
+
+    useEffect(() => {
+        fetchData();
+    }, [fetchData]); 
 
 
     const fetchInvoicesForAccount = async (accountId) => {
@@ -64,6 +65,7 @@ export const useCustomerData = () => {
             setInvoiceLoading(false);
         }
     };
+    
     const fetchPaymentsForInvoice = async (invoiceId) => {
         if (!invoiceId) {
             setPayments([]);
@@ -72,7 +74,7 @@ export const useCustomerData = () => {
         
         setPaymentLoading(true);
         setPaymentError(null);
-        setPayments([]); // Clear old payments
+        setPayments([]); 
 
         try {
             const response = await apiClient.get(`/customer/invoices/${invoiceId}/payments`);
@@ -90,6 +92,7 @@ export const useCustomerData = () => {
         accounts, 
         loading, 
         error, 
+        refetchData: fetchData, 
         
         invoices,
         invoiceLoading,

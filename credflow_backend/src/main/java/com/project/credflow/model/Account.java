@@ -47,4 +47,12 @@ public class Account {
 
     @Column(name = "current_balance", precision = 19, scale = 2)
     private BigDecimal currentBalance;
+
+    @Column(name = "current_speed")
+    private String currentSpeed;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "plan_id")
+    private Plan plan;
+
 }

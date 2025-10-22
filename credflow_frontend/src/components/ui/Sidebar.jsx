@@ -15,12 +15,14 @@ const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
             { path: '/admin/dashboard', label: 'Dashboard', icon: <Home size={20} />, badge: null },
             { path: '/admin/rules', label: 'Rules Engine', icon: <Settings size={20} />, badge: 'AI' },
             { path: '/admin/bpo', label: 'BPO Tasks', icon: <Users size={20} />, badge: '12' },
-            { path: '/admin/logs', label: 'Analytics', icon: <BarChart size={20} />, badge: null },
+            { path: '/admin/plans', label: 'Plans', icon: <DollarSign size={20} />, badge: null },
+            { path: '/admin/analytics', label: 'Analytics', icon: <BarChart size={20} />, badge: null },
             { path: '/admin/security', label: 'Security', icon: <Shield size={20} />, badge: null },
         ],
         [RoleName.CUSTOMER]: [
             { path: '/customer/status', label: 'Account Status', icon: <Home size={20} />, badge: null },
             { path: '/customer/payments', label: 'Payments', icon: <DollarSign size={20} />, badge: '2' },
+            { path: '/customer/plans', label: 'Plans', icon: <Users size={20} />, badge: null },
             { path: '/customer/help', label: 'Support', icon: <Settings size={20} />, badge: null },
         ],
         [RoleName.BPO_AGENT]: [ 

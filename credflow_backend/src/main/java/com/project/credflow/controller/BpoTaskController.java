@@ -1,8 +1,10 @@
 package com.project.credflow.controller;
 
+import com.project.credflow.dto.BpoPerformanceDto;
 import com.project.credflow.dto.BpoTaskDto;
 import com.project.credflow.dto.CallLogDto;
 import com.project.credflow.model.User;
+import com.project.credflow.service.inter.BpoPerformanceService;
 import com.project.credflow.service.inter.BpoTaskService;
 import com.project.credflow.service.inter.CallLogService;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +25,7 @@ public class BpoTaskController {
 
     private final BpoTaskService bpoTaskService;
     private final CallLogService callLogService;
+    private final BpoPerformanceService bpoPerformanceService;
     @GetMapping("/tasks/my-queue")
     public ResponseEntity<List<BpoTaskDto>> getMyTaskQueue(@AuthenticationPrincipal User bpoAgent) {
         List<BpoTaskDto> tasks = bpoTaskService.getTaskQueueForAgent(bpoAgent);
@@ -68,5 +71,10 @@ public class BpoTaskController {
     public ResponseEntity<List<CallLogDto>> getMyCallLogs(@AuthenticationPrincipal User bpoAgent) {
         List<CallLogDto> logs = callLogService.getLogsForAgent(bpoAgent);
         return ResponseEntity.ok(logs);
+    }
+    @GetMapping("/my-performance")
+    public ResponseEntity<BpoPerformanceDto> getMyPerformanceStats(@AuthenticationPrincipal User bpoAgent) {
+        BpoPerformanceDto stats = bpoPerformanceService.getAgentPerformanceStats(bpoAgent);
+        return ResponseEntity.ok(stats);
     }
 }

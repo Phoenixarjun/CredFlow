@@ -1,11 +1,15 @@
 package com.project.credflow.service.impl;
 
+import com.project.credflow.enums.AccountStatus;
 import com.project.credflow.enums.InvoiceStatus;
 import com.project.credflow.enums.PaymentMethod;
 import com.project.credflow.enums.PaymentStatus;
 import com.project.credflow.exception.ResourceNotFoundException;
+import com.project.credflow.model.Account;
 import com.project.credflow.model.Invoice;
 import com.project.credflow.model.Payment;
+import com.project.credflow.model.Plan;
+import com.project.credflow.repository.AccountRepository;
 import com.project.credflow.repository.InvoiceRepository;
 import com.project.credflow.repository.PaymentRepository;
 import com.project.credflow.service.inter.PaymentService;
@@ -14,17 +18,19 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 @Service
 @RequiredArgsConstructor
-@Slf4j // Using Slf4j for logging
+@Slf4j
 public class PaymentServiceImpl implements PaymentService {
 
     private final InvoiceRepository invoiceRepository;
     private final PaymentRepository paymentRepository;
+    private final AccountRepository accountRepository;
 
     @Override
     @Transactional
@@ -36,7 +42,6 @@ public class PaymentServiceImpl implements PaymentService {
 
         if (invoice.getStatus() == InvoiceStatus.PAID) {
             log.warn("Invoice {} is already paid.", invoiceId);
-            // Optionally throw an exception or just return
             throw new IllegalStateException("Invoice is already paid.");
         }
 
@@ -49,36 +54,66 @@ public class PaymentServiceImpl implements PaymentService {
             log.error("Payment simulation delay interrupted", e);
             throw new RuntimeException("Payment simulation interrupted", e);
         }
-        // --------------------------------
-
-        // Update Invoice Status
         invoice.setStatus(InvoiceStatus.PAID);
         invoiceRepository.save(invoice);
         log.info("Updated invoice {} status to PAID", invoiceId);
 
-        // Create Payment Record
         Payment payment = new Payment();
         payment.setInvoice(invoice);
-        payment.setAmountPaid(invoice.getAmountDue()); // Assume full amount paid
+        payment.setAmountPaid(invoice.getAmountDue());
         payment.setPaymentDate(LocalDate.now());
-        payment.setStatus(PaymentStatus.SUCCESS); // Mark payment as completed
+        payment.setStatus(PaymentStatus.SUCCESS);
 
-        // Safely parse the payment method string to enum
         try {
             PaymentMethod method = PaymentMethod.valueOf(paymentMethodString.toUpperCase());
             payment.setPaymentMethod(method);
         } catch (IllegalArgumentException e) {
             log.warn("Invalid payment method string '{}'. Defaulting to OTHER.", paymentMethodString);
-            payment.setPaymentMethod(PaymentMethod.OTHER); // Defaults instead of crashing
+            payment.setPaymentMethod(PaymentMethod.OTHER);
         }
         payment.setTransactionRef("SIMULATED-" + UUID.randomUUID().toString().substring(0, 8));
 
         paymentRepository.save(payment);
         log.info("Created simulated payment record for invoice {}", invoiceId);
 
-        // TODO: Update Account Balance (Phase X)
-        // Account account = invoice.getAccount();
-        // account.setCurrentBalance(account.getCurrentBalance().subtract(payment.getAmountPaid()));
-        // accountRepository.save(account);
+        Account account = invoice.getAccount();
+        if (account != null) {
+            BigDecimal newBalance = account.getCurrentBalance().subtract(payment.getAmountPaid());
+            account.setCurrentBalance(newBalance);
+            accountRepository.save(account);
+            log.info("Updated account {} balance to {}", account.getAccountNumber(), newBalance);
+
+            cureAccountIfApplicable(account);
+
+        } else {
+            log.warn("Invoice {} has no associated account. Balance not updated.", invoiceId);
+        }
+    }
+
+
+    private void cureAccountIfApplicable(Account account) {
+        if (account.getStatus() == AccountStatus.THROTTLED ||
+                account.getStatus() == AccountStatus.SUSPENDED) {
+
+            log.info("Account {} is in a non-active state. Checking if curing is needed...", account.getAccountNumber());
+
+            long overdueCount = invoiceRepository.countByAccountAndStatus(account, InvoiceStatus.OVERDUE);
+
+            if (overdueCount == 0) {
+                Plan plan = account.getPlan();
+                if (plan != null) {
+                    log.info("Curing account {}: No overdue invoices found. Restoring services.", account.getAccountNumber());
+                    account.setStatus(AccountStatus.ACTIVE);
+                    account.setCurrentSpeed(plan.getDefaultSpeed()); // Restore to default speed
+                    accountRepository.save(account);
+                    log.info("Account {} cured. Status set to ACTIVE, speed set to {}.",
+                            account.getAccountNumber(), plan.getDefaultSpeed());
+                } else {
+                    log.warn("Account {} has no overdue invoices, but cannot be cured: No plan assigned.", account.getAccountNumber());
+                }
+            } else {
+                log.info("Account {} not cured. {} overdue invoices still remain.", account.getAccountNumber(), overdueCount);
+            }
+        }
     }
 }

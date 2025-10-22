@@ -25,6 +25,8 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.List;
 
+import static org.springframework.http.HttpMethod.GET;
+
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity // Good practice to enable method-level security if needed later
@@ -80,6 +82,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // Allow preflight OPTIONS requests for CORS
                         .requestMatchers(HttpMethod.OPTIONS, "/api/**").permitAll()
+                        .requestMatchers(GET, "/api/plans").permitAll()
                         // Allow access to authentication endpoints
                         .requestMatchers("/api/auth/**").permitAll()
                         // Require ADMIN role for admin endpoints
@@ -88,7 +91,6 @@ public class SecurityConfig {
                         .requestMatchers("/api/customer/**").hasRole("CUSTOMER")
                         // Temporarily permit BPO and Payment endpoints (adjust as needed)
                         .requestMatchers("/api/bpo/**").hasRole("BPO_AGENT")// TODO: Secure later with hasRole("BPO_AGENT") or specific logic
-                        .requestMatchers("/api/payment/**").permitAll() // TODO: Secure later based on roles/ownership
                         // Require authentication for any other request
                         .anyRequest().authenticated()
                 )

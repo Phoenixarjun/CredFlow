@@ -14,4 +14,6 @@ public interface CallLogRepository extends JpaRepository<CallLog, UUID> {
     List<CallLog> findByTask_TaskIdOrderByCreatedAtDesc(UUID taskId);
 
     List<CallLog> findByAgent_UserIdOrderByCreatedAtDesc(UUID agentId);
+
+    long countByAgent(User agent);
 }
