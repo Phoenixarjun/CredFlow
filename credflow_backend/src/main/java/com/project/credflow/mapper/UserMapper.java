@@ -15,9 +15,10 @@ public interface UserMapper {
     UserMapper INSTANCE = Mappers.getMapper(UserMapper.class);
 
     @Mapping(source = "userId", target = "userId", qualifiedByName = "uuidToString")
-    @Mapping(source = "role.roleName", target = "roleName") // This automatically converts the enum to a String
+    @Mapping(source = "role.roleName", target = "roleName")
     @Mapping(source = "phoneNumber", target = "phoneNumber")
     @Mapping(source = "createdAt", target = "createdAt")
+    @Mapping(source = "isActive", target = "isActive")
     UserDto toUserDto(User user);
 
     @Named("uuidToString")

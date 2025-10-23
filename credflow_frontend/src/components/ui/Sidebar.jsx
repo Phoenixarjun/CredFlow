@@ -18,6 +18,7 @@ const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
             { path: '/admin/plans', label: 'Plans', icon: <DollarSign size={20} />, badge: null },
             { path: '/admin/analytics', label: 'Analytics', icon: <BarChart size={20} />, badge: null },
             { path: '/admin/security', label: 'Security', icon: <Shield size={20} />, badge: null },
+            { path: '/admin/users', label: 'Users', icon: <Users size={20} />, badge: null },
         ],
         [RoleName.CUSTOMER]: [
             { path: '/customer/status', label: 'Account Status', icon: <Home size={20} />, badge: null },

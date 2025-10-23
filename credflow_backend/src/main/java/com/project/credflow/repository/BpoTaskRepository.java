@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query; // Import Query
 import org.springframework.data.repository.query.Param; // Import Param
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -25,5 +26,23 @@ public interface BpoTaskRepository extends JpaRepository<BpoTask, UUID> {
 
     @Query("SELECT t.status as status, COUNT(t) as count FROM BpoTask t GROUP BY t.status")
     List<Map<String, Object>> getStatusBreakdown();
+
+    @Query(value =
+            "SELECT DATE(b.updated_at) as completedDate, COUNT(b.task_id) as count " +
+                    "FROM bpo_tasks b " +
+                    "WHERE b.assigned_to = :agentId " +
+                    "  AND b.status IN (" +
+                    "    'COMPLETED', " +
+                    "    'RESOLVED_PAYMENT_MADE', " +
+                    "    'RESOLVED_NO_CONTACT', " +
+                    "    'RESOLVED_DISPUTED', " +
+                    "    'CLOSED'" +
+                    "  ) " +
+                    "  AND b.updated_at >= :startDate " +
+                    "GROUP BY DATE(b.updated_at) " +
+                    "ORDER BY completedDate ASC",
+            nativeQuery = true
+    )
+    List<Map<String, Object>> getTaskResolutionTrend(@Param("agentId") UUID agentId, @Param("startDate") LocalDateTime startDate);
 
 }
