@@ -26,6 +26,7 @@ const AdminBpoPage = lazy(() => import('@/features/admin/pages/AdminBpoPage'));
 const AdminRulesPage = lazy(() => import('@/features/admin/pages/RulesManagementPage')); 
 const AdminPlansPage = lazy(() => import('@/features/admin/pages/AdminPlansPage')); 
 const AdminAnalyticsPage = lazy(() => import('@/features/admin/pages/AdminAnalyticsPage')); 
+const AdminUsersPage = lazy(() => import('@/features/admin/pages/AdminUsersPage'));
 
 // BPO
 const BpoTasksPage = lazy(() => import('@/features/bpo/pages/BpoTaskQueue'));
@@ -52,6 +53,7 @@ function App() {
           <Route path="/admin/bpo" element={<ProtectedRoute role={RoleName.ADMIN}><AdminBpoPage /></ProtectedRoute>} />
           <Route path="/admin/plans" element={<ProtectedRoute role={RoleName.ADMIN}><AdminPlansPage /></ProtectedRoute>} />
           <Route path="/admin/analytics" element={<ProtectedRoute role={RoleName.ADMIN}><AdminAnalyticsPage /></ProtectedRoute>} />
+          <Route path="/admin/users" element={<ProtectedRoute role={RoleName.ADMIN}><AdminUsersPage /></ProtectedRoute>} /> 
 
 
           {/* Customer Routes */}
