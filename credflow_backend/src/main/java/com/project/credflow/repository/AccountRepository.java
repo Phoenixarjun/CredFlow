@@ -12,4 +12,6 @@ public interface AccountRepository extends JpaRepository<Account, UUID> {
 
 
     List<Account> findByCustomer_CustomerId(UUID customerId);
+
+    List<Account> findByAccountNumberContainingIgnoreCase(String accountNumberQuery);
 }

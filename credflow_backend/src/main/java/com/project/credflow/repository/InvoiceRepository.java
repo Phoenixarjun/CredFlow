@@ -42,4 +42,7 @@ public interface InvoiceRepository extends JpaRepository<Invoice, UUID> {
 
     @Query("SELECT COALESCE(SUM(i.amountDue), 0) FROM Invoice i WHERE DATE(i.createdAt) BETWEEN :startDate AND :endDate")
     BigDecimal sumInvoicesCreatedBetweenDates(LocalDate startDate, LocalDate endDate);
+
+    List<Invoice> findByAccountAccountIdInOrderByDueDateDesc(List<UUID> accountIds);
+
 }

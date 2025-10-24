@@ -23,6 +23,7 @@ export const useDunningRules = () => {
                     Authorization: `Bearer ${user.token}`,
                 },
             });
+            console.log("Fetched rules:", response.data);
             setRules(response.data);
         } catch (err) {
             console.error("Failed to fetch rules:", err);
@@ -41,6 +42,7 @@ export const useDunningRules = () => {
                     Authorization: `Bearer ${user.token}`,
                 },
             });
+            console.log("Added rule:", response.data);
             setRules(prevRules => [...prevRules, response.data]);
         } catch (err) {
             console.error("Failed to add rule:", err);

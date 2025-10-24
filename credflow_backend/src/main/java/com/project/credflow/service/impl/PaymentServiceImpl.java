@@ -5,11 +5,9 @@ import com.project.credflow.enums.InvoiceStatus;
 import com.project.credflow.enums.PaymentMethod;
 import com.project.credflow.enums.PaymentStatus;
 import com.project.credflow.exception.ResourceNotFoundException;
-import com.project.credflow.model.Account;
-import com.project.credflow.model.Invoice;
-import com.project.credflow.model.Payment;
-import com.project.credflow.model.Plan;
+import com.project.credflow.model.*;
 import com.project.credflow.repository.AccountRepository;
+import com.project.credflow.repository.CustomerRepository;
 import com.project.credflow.repository.InvoiceRepository;
 import com.project.credflow.repository.PaymentRepository;
 import com.project.credflow.service.inter.PaymentService;
@@ -20,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -31,6 +30,7 @@ public class PaymentServiceImpl implements PaymentService {
     private final InvoiceRepository invoiceRepository;
     private final PaymentRepository paymentRepository;
     private final AccountRepository accountRepository;
+    private final CustomerRepository customerRepository;
 
     @Override
     @Transactional
@@ -45,10 +45,9 @@ public class PaymentServiceImpl implements PaymentService {
             throw new IllegalStateException("Invoice is already paid.");
         }
 
-        // --- Simulate Processing Delay ---
         try {
             log.debug("Simulating payment processing delay...");
-            TimeUnit.SECONDS.sleep(2); // Simulate 2 seconds processing
+            TimeUnit.SECONDS.sleep(2);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             log.error("Payment simulation delay interrupted", e);
@@ -90,7 +89,6 @@ public class PaymentServiceImpl implements PaymentService {
         }
     }
 
-
     private void cureAccountIfApplicable(Account account) {
         if (account.getStatus() == AccountStatus.THROTTLED ||
                 account.getStatus() == AccountStatus.SUSPENDED) {
@@ -104,7 +102,7 @@ public class PaymentServiceImpl implements PaymentService {
                 if (plan != null) {
                     log.info("Curing account {}: No overdue invoices found. Restoring services.", account.getAccountNumber());
                     account.setStatus(AccountStatus.ACTIVE);
-                    account.setCurrentSpeed(plan.getDefaultSpeed()); // Restore to default speed
+                    account.setCurrentSpeed(plan.getDefaultSpeed());
                     accountRepository.save(account);
                     log.info("Account {} cured. Status set to ACTIVE, speed set to {}.",
                             account.getAccountNumber(), plan.getDefaultSpeed());
@@ -115,5 +113,46 @@ public class PaymentServiceImpl implements PaymentService {
                 log.info("Account {} not cured. {} overdue invoices still remain.", account.getAccountNumber(), overdueCount);
             }
         }
+    }
+
+    @Override
+    @Transactional
+    public void manuallyCureCustomer(UUID customerId, User adminUser, String reason) {
+        log.warn("ADMIN ACTION: Attempting manual cure for customer ID: {} by Admin: {} (Reason: {})",
+                customerId, adminUser.getEmail(), reason);
+
+        Customer customer = customerRepository.findById(customerId)
+                .orElseThrow(() -> new ResourceNotFoundException("Cannot perform manual cure: Customer not found with ID: " + customerId));
+
+        List<Account> accounts = accountRepository.findByCustomer_CustomerId(customerId);
+        if (accounts.isEmpty()) {
+            log.warn("Manual cure for customer {} had no effect: No accounts found.", customerId);
+            return;
+        }
+
+        int curedCount = 0;
+        for (Account account : accounts) {
+            if (account.getStatus() == AccountStatus.THROTTLED || account.getStatus() == AccountStatus.SUSPENDED) {
+                Plan plan = account.getPlan();
+                if (plan != null) {
+                    account.setStatus(AccountStatus.ACTIVE);
+                    account.setCurrentSpeed(plan.getDefaultSpeed());
+                    accountRepository.save(account);
+                    log.warn("ADMIN ACTION: Manually cured Account {}. Status set to ACTIVE, speed restored to {}. Performed by: {}. Reason: {}",
+                            account.getAccountNumber(), plan.getDefaultSpeed(), adminUser.getEmail(), reason);
+                    curedCount++;
+                } else {
+                    log.error("ADMIN ACTION FAILED for Account {}: Cannot manually cure - Account has no plan assigned to determine default speed.", account.getAccountNumber());
+                }
+            }
+        }
+
+        if (curedCount == 0) {
+            log.info("Manual cure requested for customer {}, but no accounts were in a THROTTLED or SUSPENDED state.", customerId);
+        } else {
+            log.warn("ADMIN ACTION Completed: Manually cured {} account(s) for customer {}. Performed by: {}",
+                    curedCount, customerId, adminUser.getEmail());
+        }
+        // TODO: Consider adding an entry to a dedicated AdminActionLog table here for better auditing.
     }
 }

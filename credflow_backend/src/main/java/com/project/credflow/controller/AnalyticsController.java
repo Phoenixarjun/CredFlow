@@ -1,7 +1,12 @@
 package com.project.credflow.controller;
 
+import com.project.credflow.dto.DunningActionLogDto;
+import com.project.credflow.dto.NotificationLogDto;
 import com.project.credflow.service.inter.AnalyticsService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -44,5 +49,20 @@ public class AnalyticsController {
     @GetMapping("/bpo-status")
     public ResponseEntity<List<Map<String, Object>>> getBpoTaskStatus() {
         return ResponseEntity.ok(analyticsService.getBpoTaskStatusBreakdown());
+    }
+
+    @GetMapping("/logs/dunning-actions")
+    public ResponseEntity<Page<DunningActionLogDto>> getDunningActionLogs(
+            @PageableDefault(size = 15, sort = "createdAt") Pageable pageable) {
+        Page<DunningActionLogDto> logPage = analyticsService.getPageOfDunningActionLogs(pageable);
+        return ResponseEntity.ok(logPage);
+    }
+
+
+    @GetMapping("/logs/notifications")
+    public ResponseEntity<Page<NotificationLogDto>> getNotificationLogs(
+            @PageableDefault(size = 15, sort = "sentAt") Pageable pageable) {
+        Page<NotificationLogDto> logPage = analyticsService.getPageOfNotificationLogs(pageable);
+        return ResponseEntity.ok(logPage);
     }
 }

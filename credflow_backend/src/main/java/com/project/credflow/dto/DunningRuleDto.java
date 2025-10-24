@@ -1,8 +1,6 @@
 package com.project.credflow.dto;
 
-import com.project.credflow.enums.BpoTaskPriority;
-import com.project.credflow.enums.RuleActionType;
-import com.project.credflow.enums.RuleConditionType;
+import com.project.credflow.enums.*; // Import enums package
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -31,6 +29,8 @@ public class DunningRuleDto {
 
     @NotNull(message = "Active status is required")
     private Boolean isActive;
+
+    private PlanType appliesToPlanType;
 
     @NotNull(message = "Condition type is required")
     private RuleConditionType conditionType;

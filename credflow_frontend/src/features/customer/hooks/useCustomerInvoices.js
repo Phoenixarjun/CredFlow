@@ -16,6 +16,7 @@ export const useCustomerInvoices = (statusFilter = null) => {
 
             // Filter locally if statusFilter is provided
             let fetchedInvoices = response.data;
+            console.log("Fetched invoices:", fetchedInvoices);
             if (statusFilter) {
                 fetchedInvoices = fetchedInvoices.filter(inv => inv.status === statusFilter);
             }

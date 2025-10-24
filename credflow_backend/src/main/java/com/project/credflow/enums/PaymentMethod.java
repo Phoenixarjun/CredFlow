@@ -9,5 +9,6 @@ public enum PaymentMethod {
     QR_CODE,
     WALLET,
     MANUAL,
+    BANK_TRANSFER,
     OTHER
 }

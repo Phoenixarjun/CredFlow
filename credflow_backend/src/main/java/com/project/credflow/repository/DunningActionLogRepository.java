@@ -17,4 +17,10 @@ public interface DunningActionLogRepository extends JpaRepository<DunningActionL
             "WHERE da.createdAt BETWEEN :startDate AND :endDate " +
             "GROUP BY da.actionType")
     List<Map<String, Object>> getActionBreakdown(LocalDateTime startDate, LocalDateTime endDate);
+
+    @Query("SELECT dal FROM DunningActionLog dal JOIN Invoice i ON dal.invoiceId = i.invoiceId " +
+            "JOIN Account a ON i.account = a " +
+            "WHERE a.customer.customerId = :customerId " +
+            "ORDER BY dal.createdAt DESC")
+    List<DunningActionLog> findByCustomer(UUID customerId);
 }

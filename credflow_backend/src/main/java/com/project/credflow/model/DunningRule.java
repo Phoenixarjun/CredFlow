@@ -1,8 +1,6 @@
 package com.project.credflow.model;
 
-import com.project.credflow.enums.BpoTaskPriority;
-import com.project.credflow.enums.RuleActionType;
-import com.project.credflow.enums.RuleConditionType;
+import com.project.credflow.enums.*;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -26,7 +24,7 @@ public class DunningRule {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(name = "rule_id")
+    @Column(name = "rule_id", columnDefinition = "binary(16)")
     private UUID ruleId;
 
     @Column(name = "rule_name", nullable = false, unique = true, length = 100)
@@ -40,6 +38,10 @@ public class DunningRule {
 
     @Column(name = "is_active", nullable = false)
     private Boolean isActive = true;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "applies_to_plan_type")
+    private PlanType appliesToPlanType;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "condition_type", nullable = false)
