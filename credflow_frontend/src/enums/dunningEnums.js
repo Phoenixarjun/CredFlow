@@ -23,6 +23,11 @@ export const AccountTypes = [
 ];
 
 export const PlanTypes = [
-    { value: 'POSTPAID', label: 'Postpaid' },
     { value: 'PREPAID', label: 'Prepaid' },
+    { value: 'POSTPAID', label: 'Postpaid' },
+];
+
+export const PlanTypeOptions = [
+    { value: 'ALL', label: 'All Plan Types' }, // Represents application-level 'ALL'
+    ...PlanTypes,
 ];

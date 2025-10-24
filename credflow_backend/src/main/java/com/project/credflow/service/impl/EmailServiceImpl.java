@@ -5,13 +5,20 @@ import com.project.credflow.model.Invoice;
 import com.project.credflow.model.NotificationTemplate;
 import com.project.credflow.model.User;
 import com.project.credflow.service.inter.EmailService;
+import com.project.credflow.service.inter.NotificationLogService;
+import com.project.credflow.enums.NotificationChannel;
+import com.project.credflow.enums.NotificationStatus;
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
+
+import java.time.temporal.ChronoUnit;
 
 @Service
 @RequiredArgsConstructor
@@ -20,6 +27,7 @@ public class EmailServiceImpl implements EmailService {
     private static final Logger log = LoggerFactory.getLogger(EmailServiceImpl.class);
 
     private final JavaMailSender mailSender;
+    private final NotificationLogService notificationLogService;
 
     @Value("${spring.mail.username}")
     private String fromEmail;
@@ -28,50 +36,71 @@ public class EmailServiceImpl implements EmailService {
     public void sendDunningEmail(Invoice invoice, NotificationTemplate template) {
         Customer customer = invoice.getAccount().getCustomer();
 
-        // ** 2. CHECK CUSTOMER AND GET THE USER **
         if (customer == null || customer.getUser() == null || customer.getUser().getEmail() == null) {
             log.warn("Cannot send email: Customer, associated User, or User's email is null for invoice {}", invoice.getInvoiceId());
+            if (customer != null) {
+                notificationLogService.logNotification(customer, NotificationChannel.EMAIL, template.getTemplateName(), NotificationStatus.FAILED, "Recipient email address missing or user not found");
+            }
             return;
         }
 
-        User user = customer.getUser(); // Get the User from the Customer
+        User user = customer.getUser();
+        String recipientEmail = user.getEmail();
 
         try {
-            // ** 3. PASS THE USER (NOT CUSTOMER) TO processTemplateBody **
+            String subject = processTemplateBody(template.getSubject(), invoice, user);
             String body = processTemplateBody(template.getBody(), invoice, user);
 
-            // 2. Create the email message
-            SimpleMailMessage message = new SimpleMailMessage();
-            message.setFrom(fromEmail);
+            MimeMessage mimeMessage = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, "UTF-8");
 
-            // ** 4. SET "TO" USING THE USER'S EMAIL **
-            message.setTo(user.getEmail());
+            helper.setFrom(fromEmail);
+            helper.setTo(recipientEmail);
+            helper.setSubject(subject);
+            helper.setText(body, true);
 
-            message.setSubject(template.getSubject()); // Use subject from template
-            message.setText(body);
+            mailSender.send(mimeMessage);
 
-            // 3. Send the email
-            mailSender.send(message);
+            log.info("Successfully sent dunning email to {} for invoice {}", recipientEmail, invoice.getInvoiceNumber());
 
-            log.info("Successfully sent dunning email to {} for invoice {}", user.getEmail(), invoice.getInvoiceNumber());
+            notificationLogService.logNotification(customer, NotificationChannel.EMAIL, template.getTemplateName(), NotificationStatus.SENT, null);
 
-        } catch (Exception e) {
+        } catch (MessagingException e) {
             log.error("Failed to send dunning email for invoice {}: {}", invoice.getInvoiceId(), e.getMessage(), e);
+            notificationLogService.logNotification(customer, NotificationChannel.EMAIL, template.getTemplateName(), NotificationStatus.FAILED, e.getMessage());
+        } catch (Exception e) {
+            log.error("Unexpected error sending dunning email for invoice {}: {}", invoice.getInvoiceId(), e.getMessage(), e);
+            notificationLogService.logNotification(customer, NotificationChannel.EMAIL, template.getTemplateName(), NotificationStatus.FAILED, "Unexpected error: " + e.getMessage());
         }
     }
 
-    /**
-     * Replaces placeholders in the template body with actual data.
-     * ** 5. UPDATED SIGNATURE TO ACCEPT User **
-     */
+
     private String processTemplateBody(String body, Invoice invoice, User user) {
-        // Basic placeholder replacement
-        return body
-                // ** 6. GET FULL NAME FROM USER **
-                .replace("[CustomerName]", user.getFullName())
-                .replace("[InvoiceNumber]", invoice.getInvoiceNumber())
-                .replace("[AmountDue]", String.format("%.2f", invoice.getAmountDue()))
-                .replace("[DueDate]", invoice.getDueDate().toString());
-        // Add more placeholders as needed
+        if (body == null) return "";
+
+        body = body.replace("[CustomerName]", user.getFullName());
+        body = body.replace("[InvoiceNumber]", invoice.getInvoiceNumber());
+        body = body.replace("[AmountDue]", String.format("%.2f", invoice.getAmountDue()));
+
+        if (invoice.getDueDate() != null) {
+            body = body.replace("[DueDate]", invoice.getDueDate().toString());
+        }
+
+        long daysOverdue = 0;
+        if (invoice.getDueDate() != null && invoice.getDueDate().isBefore(java.time.LocalDate.now())) {
+            daysOverdue = ChronoUnit.DAYS.between(invoice.getDueDate(), java.time.LocalDate.now());
+        }
+        body = body.replace("[DaysOverdue]", String.valueOf(daysOverdue));
+
+        body = body.replace("[PortalLink]", "http://localhost:5173/customer/payments"); // Update link if needed
+
+        if (invoice.getAccount() != null) {
+            body = body.replace("[AccountNumber]", invoice.getAccount().getAccountNumber());
+            body = body.replace("[TotalAmountDue]", String.format("%.2f", invoice.getAccount().getCurrentBalance()));
+        }
+
+        body = body.replace("[AmountPaid]", "N/A");
+
+        return body;
     }
 }

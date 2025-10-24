@@ -71,6 +71,7 @@ public class DunningRuleServiceImpl implements DunningRuleService {
         existingRule.setDescription(dunningRuleDto.getDescription());
         existingRule.setPriority(dunningRuleDto.getPriority());
         existingRule.setIsActive(dunningRuleDto.getIsActive());
+        existingRule.setAppliesToPlanType(dunningRuleDto.getAppliesToPlanType()); // Added this line
         existingRule.setConditionType(dunningRuleDto.getConditionType());
         existingRule.setConditionValueInteger(dunningRuleDto.getConditionValueInteger());
         existingRule.setConditionValueDecimal(dunningRuleDto.getConditionValueDecimal());

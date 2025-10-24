@@ -14,4 +14,5 @@ public class InvoiceDto {
     private BigDecimal amountDue;
     private LocalDate dueDate;
     private InvoiceStatus status;
+    private Integer overdueDays;
 }

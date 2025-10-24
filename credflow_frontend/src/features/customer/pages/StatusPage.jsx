@@ -1,21 +1,22 @@
-import React, { useState } from 'react'; // Added React import
-import { Flex, Heading, Text, Box, Card, Grid, Button, Badge } from '@radix-ui/themes'; // Added Button, Badge
+import React, { useState } from 'react';
+import { Flex, Heading, Text, Box, Card, Grid, Button, Badge, IconButton, Tooltip } from '@radix-ui/themes';
 import { useCustomerData } from '../hooks/useCustomerData';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 import ErrorDisplay from '@/components/ui/ErrorDisplay';
 import AccountSummary from '../components/AccountSummary.jsx';
 import InvoiceTable from '../components/InvoiceTable';
 import PaymentHistoryModal from '../components/PaymentHistoryModal';
-import { Link } from 'react-router-dom'; // Added Link
+import ChatWindow from '../components/ChatWindow'; // Import ChatWindow
+import { Link } from 'react-router-dom';
 import {
     CheckCircledIcon,
     CrossCircledIcon,
     RocketIcon,
     LightningBoltIcon,
-    IdCardIcon
-} from '@radix-ui/react-icons'; // Added new icons
+    IdCardIcon,
+    ChatBubbleIcon // Import ChatBubbleIcon
+} from '@radix-ui/react-icons';
 
-// --- Helper Functions for new Plan Status ---
 const getStatusColor = (status) => {
     switch (status) {
         case 'ACTIVE': return 'green';
@@ -30,75 +31,57 @@ const getSpeedColor = (speed) => {
     if (!speed) return 'gray';
     if (speed.includes('mbps') || speed.includes('gbps')) return 'green';
     if (speed.includes('kbps')) return 'orange';
-    if (speed.includes('0mbps')) return 'red';
+    // Use includes('0') to catch '0mbps', '0 kbps' etc. more broadly
+    if (speed.includes('0')) return 'red';
     return 'gray';
 };
-// -------------------------------------------
 
 const StatusPage = () => {
-    // 1. Get ALL props from the hook (your code was correct)
     const {
-        profile,
-        accounts,
-        loading,
-        error,
-        invoices,
-        invoiceLoading,
-        invoiceError,
-        fetchInvoicesForAccount,
-        payments,
-        paymentLoading,
-        paymentError,
-        fetchPaymentsForInvoice
+        profile, accounts, loading, error,
+        invoices, invoiceLoading, invoiceError, fetchInvoicesForAccount,
+        payments, paymentLoading, paymentError, fetchPaymentsForInvoice
     } = useCustomerData();
 
-    // 2. State to manage the modal (your code was correct)
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedInvoice, setSelectedInvoice] = useState(null);
+    const [isChatOpen, setIsChatOpen] = useState(false);
 
-    // 3. Handler function (your code was correct)
     const handleViewPayments = (invoice) => {
         setSelectedInvoice(invoice);
         setIsModalOpen(true);
         fetchPaymentsForInvoice(invoice.invoiceId);
     };
 
-    // --- Loading State ---
     if (loading) {
         return <LoadingSpinner text="Loading your dashboard..." />;
     }
 
-    // --- Error State ---
     if (error) {
         return <ErrorDisplay message={error} />;
     }
 
-    // --- No Profile State ---
     if (!profile) {
         return <ErrorDisplay message="Could not load customer profile." />;
     }
 
-    // --- Calculate quick stats (your code was correct) ---
     const activeAccounts = accounts.filter(acc => acc.status === 'ACTIVE').length;
     const totalBalance = accounts.reduce((sum, acc) => sum + (acc.currentBalance || 0), 0);
+    // Ensure accurate overdue check using the correct status string from your enum/data
     const overdueInvoices = invoices.filter(inv => inv.status === 'OVERDUE').length;
-    
-    // --- Get the primary account for plan display ---
     const primaryAccount = accounts.length > 0 ? accounts[0] : null;
 
     return (
-        // Wrap in Fragment (your code was correct)
         <>
             <Flex direction="column" gap="6">
-                
-                {/* --- Header Section (your code) --- */}
+
                 <Flex direction="column" gap="2">
                     <Flex align="center" gap="3">
                         <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full flex items-center justify-center text-white">
-                           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
                         </div>
                        <Heading size="7" >
-                            Welcome, {profile.companyName}
+                            Welcome, {profile.companyName || profile.user?.fullName || 'Customer'}
                         </Heading>
                     </Flex>
                     <Text color="gray" size="3">
@@ -106,7 +89,6 @@ const StatusPage = () => {
                     </Text>
                 </Flex>
 
-                {/* --- Quick Stats Cards (your code) --- */}
                 <Grid columns={{ initial: '1', sm: '2', md: '4' }} gap="4">
                     <Card className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-800/30 border-blue-200 dark:border-blue-700/50">
                         <Flex direction="column" gap="2">
@@ -171,13 +153,10 @@ const StatusPage = () => {
                     </Card>
                 </Grid>
 
-                
-                {/* --- NEW: PLAN & SERVICE STATUS SECTION --- */}
                 <Box>
                     <Heading size="4" mb="3">My Plan & Service</Heading>
                     {primaryAccount ? (
                         <>
-                            {/* --- 1. NO PLAN CARD --- */}
                             {!primaryAccount.planName && (
                                 <Card size="3" style={{ backgroundColor: 'var(--blue-2)' }}>
                                     <Flex direction="column" gap="4" align="start">
@@ -193,11 +172,8 @@ const StatusPage = () => {
                                     </Flex>
                                 </Card>
                             )}
-
-                            {/* --- 2. PLAN DETAILS CARDS --- */}
                             {primaryAccount.planName && (
                                 <Grid columns={{ initial: '1', sm: '2', md: '4' }} gap="4">
-                                    {/* Account Status Card */}
                                     <Card>
                                         <Flex direction="column" gap="2" height="100%">
                                             <Text size="2" color="gray" weight="medium">Account Status</Text>
@@ -209,16 +185,12 @@ const StatusPage = () => {
                                             </Flex>
                                         </Flex>
                                     </Card>
-
-                                    {/* Plan Name Card */}
                                     <Card>
                                         <Flex direction="column" gap="2" height="100%">
                                             <Text size="2" color="gray" weight="medium">Current Plan</Text>
                                             <Heading size="4">{primaryAccount.planName}</Heading>
                                         </Flex>
                                     </Card>
-
-                                    {/* Plan Type Card */}
                                     <Card>
                                         <Flex direction="column" gap="2" height="100%">
                                             <Text size="2" color="gray" weight="medium">Plan Type</Text>
@@ -230,8 +202,6 @@ const StatusPage = () => {
                                             </Flex>
                                         </Flex>
                                     </Card>
-                                    
-                                    {/* Current Speed Card */}
                                     <Card>
                                         <Flex direction="column" gap="2" height="100%">
                                             <Text size="2" color="gray" weight="medium">Current Speed</Text>
@@ -252,10 +222,7 @@ const StatusPage = () => {
                         </Card>
                     )}
                 </Box>
-                {/* --- END OF NEW SECTION --- */}
 
-
-                {/* --- Main Content Sections (your code) --- */}
                 <AccountSummary accounts={accounts} />
 
                 <InvoiceTable
@@ -268,7 +235,6 @@ const StatusPage = () => {
                 />
             </Flex>
 
-            {/* --- Render the Modal (your code) --- */}
             <PaymentHistoryModal
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
@@ -276,6 +242,23 @@ const StatusPage = () => {
                 payments={payments}
                 loading={paymentLoading}
                 error={paymentError}
+            />
+
+           {!isChatOpen && (
+                <Button
+                    size="4"
+                    className="fixed bottom-6 right-6 w-16 h-16 rounded-full shadow-2xl bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 transition-all hover:scale-110 z-[999]"
+                    onClick={() => setIsChatOpen(true)}
+                    aria-label="Open AI Chat Assistant"
+                >
+                    <ChatBubbleIcon width="30" height="30" className="text-white" />
+                </Button>
+            )}
+
+            {/* Chat Window */}
+            <ChatWindow
+                isOpen={isChatOpen}
+                onClose={() => setIsChatOpen(false)}
             />
         </>
     );

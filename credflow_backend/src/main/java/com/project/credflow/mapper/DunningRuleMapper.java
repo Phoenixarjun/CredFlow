@@ -2,7 +2,7 @@ package com.project.credflow.mapper;
 
 import com.project.credflow.dto.DunningRuleDto;
 import com.project.credflow.model.DunningRule;
-import com.project.credflow.model.NotificationTemplate; // Import if needed for mapping templateId
+import com.project.credflow.model.NotificationTemplate;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
@@ -17,21 +17,23 @@ public interface DunningRuleMapper {
     DunningRuleMapper INSTANCE = Mappers.getMapper(DunningRuleMapper.class);
 
     // --- Entity to DTO ---
+    // appliesToPlanType is mapped automatically
 
     @Mapping(source = "template", target = "templateId", qualifiedByName = "templateToTemplateId")
-    @Mapping(source = "template.templateName", target = "templateName") // Map template name directly
+    @Mapping(source = "template.templateName", target = "templateName")
     DunningRuleDto toDunningRuleDto(DunningRule dunningRule);
 
     List<DunningRuleDto> toDunningRuleDtoList(List<DunningRule> dunningRules);
 
     // --- DTO to Entity ---
+    // appliesToPlanType is mapped automatically
 
     @Mapping(source = "templateId", target = "template", qualifiedByName = "templateIdToTemplate")
-    @Mapping(target = "createdAt", ignore = true) // Let database/Hibernate handle these
+    @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     DunningRule toDunningRuleEntity(DunningRuleDto dunningRuleDto);
 
-    // --- Helper methods for nested objects ---
+    // --- Helper methods ---
 
     @Named("templateToTemplateId")
     default UUID templateToTemplateId(NotificationTemplate template) {
@@ -40,19 +42,26 @@ public interface DunningRuleMapper {
 
     @Named("templateIdToTemplate")
     default NotificationTemplate templateIdToTemplate(UUID templateId) {
-        if (templateId == null) {
-            return null;
-        }
-        // In a real application, you might fetch the template entity from the DB here,
-        // but for simple mapping TO entity, just setting the ID is often enough
-        // if the relationship is managed correctly.
-        // For simplicity now, we'll return null or a placeholder if needed by the service layer later.
-        // Or, more commonly, the service layer handles fetching/setting the template entity based on the ID.
-        // Let's return null for now, assuming the service will handle it.
-        return null; // The Service layer should handle fetching the actual Template entity
-        // Or:
-        // NotificationTemplate template = new NotificationTemplate();
-        // template.setTemplateId(templateId);
-        // return template; // Be careful, this is detached and might cause issues if not managed properly.
+        // Service layer should handle fetching the actual Template entity based on ID
+        return null;
     }
 }
+
+
+//@Named("templateIdToTemplate")
+//default NotificationTemplate templateIdToTemplate(UUID templateId) {
+//    if (templateId == null) {
+//        return null;
+//    }
+//    // In a real application, you might fetch the template entity from the DB here,
+//    // but for simple mapping TO entity, just setting the ID is often enough
+//    // if the relationship is managed correctly.
+//    // For simplicity now, we'll return null or a placeholder if needed by the service layer later.
+//    // Or, more commonly, the service layer handles fetching/setting the template entity based on the ID.
+//    // Let's return null for now, assuming the service will handle it.
+//    return null; // The Service layer should handle fetching the actual Template entity
+//    // Or:
+//    // NotificationTemplate template = new NotificationTemplate();
+//    // template.setTemplateId(templateId);
+//    // return template; // Be careful, this is detached and might cause issues if not managed properly.
+//}

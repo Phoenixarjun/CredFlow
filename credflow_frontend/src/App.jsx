@@ -27,6 +27,9 @@ const AdminRulesPage = lazy(() => import('@/features/admin/pages/RulesManagement
 const AdminPlansPage = lazy(() => import('@/features/admin/pages/AdminPlansPage')); 
 const AdminAnalyticsPage = lazy(() => import('@/features/admin/pages/AdminAnalyticsPage')); 
 const AdminUsersPage = lazy(() => import('@/features/admin/pages/AdminUsersPage'));
+const AdminCustomerSearchPage = lazy(() => import('@/features/admin/pages/AdminCustomerSearchPage')); 
+const AdminDunningLogPage = lazy(() => import('@/features/admin/pages/AdminDunningLogPage')); 
+const AdminNotificationLogPage = lazy(() => import('@/features/admin/pages/AdminNotificationLogPage')); 
 
 // BPO
 const BpoTasksPage = lazy(() => import('@/features/bpo/pages/BpoTaskQueue'));
@@ -54,6 +57,9 @@ function App() {
           <Route path="/admin/plans" element={<ProtectedRoute role={RoleName.ADMIN}><AdminPlansPage /></ProtectedRoute>} />
           <Route path="/admin/analytics" element={<ProtectedRoute role={RoleName.ADMIN}><AdminAnalyticsPage /></ProtectedRoute>} />
           <Route path="/admin/users" element={<ProtectedRoute role={RoleName.ADMIN}><AdminUsersPage /></ProtectedRoute>} /> 
+          <Route path="/admin/customer-lookup" element={<ProtectedRoute role={RoleName.ADMIN}><AdminCustomerSearchPage /></ProtectedRoute>} />
+          <Route path="/admin/logs/dunning" element={<ProtectedRoute role={RoleName.ADMIN}><AdminDunningLogPage /></ProtectedRoute>} /> 
+          <Route path="/admin/logs/notifications" element={<ProtectedRoute role={RoleName.ADMIN}><AdminNotificationLogPage /></ProtectedRoute>} /> 
 
 
           {/* Customer Routes */}

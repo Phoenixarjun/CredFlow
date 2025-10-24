@@ -21,6 +21,7 @@ public class CustomerMapper {
         if (customer.getUser() != null) {
             dto.setEmail(customer.getUser().getEmail());
             dto.setPhoneNumber(customer.getUser().getPhoneNumber());
+            dto.setFullName(customer.getUser().getFullName());
         }
 
         return dto;
