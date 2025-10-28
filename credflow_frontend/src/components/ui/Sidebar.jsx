@@ -77,7 +77,6 @@ const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
         {isCollapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
       </button>
 
-      {/* Add custom scrollbar styles */}
       <style jsx>{`
         .sidebar-scroll::-webkit-scrollbar {
           width: 6px;

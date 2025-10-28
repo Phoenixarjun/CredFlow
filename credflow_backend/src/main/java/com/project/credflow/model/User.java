@@ -31,7 +31,7 @@ public class User implements UserDetails {
     @Column(name = "full_name")
     private String fullName;
 
-    @Column(name = "email", nullable = false, unique = true) // Added constraints
+    @Column(name = "email", nullable = false, unique = true)
     private String email;
 
     @Column(name = "password_hash")
@@ -51,6 +51,10 @@ public class User implements UserDetails {
     @JoinColumn(name = "role_id", referencedColumnName = "role_id", nullable = false)
     private Role role;
 
+    @Lob
+    @Column(name = "profile_picture", columnDefinition = "LONGBLOB")
+    private byte[] profilePicture;
+
 
     @Override
     @Transient
@@ -68,27 +72,20 @@ public class User implements UserDetails {
         return this.email;
     }
 
+    // ... other UserDetails methods ...
     @Override
     @Transient
-    public boolean isAccountNonExpired() {
-        return true;
-    }
+    public boolean isAccountNonExpired() { return true; }
 
     @Override
     @Transient
-    public boolean isAccountNonLocked() {
-        return true;
-    }
+    public boolean isAccountNonLocked() { return true; }
 
     @Override
     @Transient
-    public boolean isCredentialsNonExpired() {
-        return true;
-    }
+    public boolean isCredentialsNonExpired() { return true; }
 
     @Override
     @Transient
-    public boolean isEnabled() {
-        return this.isActive;
-    }
+    public boolean isEnabled() { return this.isActive != null && this.isActive; }
 }

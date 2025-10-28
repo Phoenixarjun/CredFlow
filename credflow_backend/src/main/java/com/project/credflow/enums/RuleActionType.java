@@ -4,5 +4,6 @@ public enum RuleActionType {
     SEND_EMAIL,
     CREATE_BPO_TASK,
     RESTRICT_SERVICE,
-    THROTTLE_SPEED
+    THROTTLE_SPEED,
+    SEND_SMS
 }

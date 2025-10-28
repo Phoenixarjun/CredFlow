@@ -1,9 +1,11 @@
 package com.project.credflow.controller;
 
+import com.project.credflow.dto.AiAdminSummaryDto; // <-- 1. Import new DTO
 import com.project.credflow.dto.CustomerDto;
 import com.project.credflow.dto.CustomerHistoryDto;
 import com.project.credflow.dto.ManualCureRequestDto;
 import com.project.credflow.model.User;
+import com.project.credflow.service.inter.AdminAiService;
 import com.project.credflow.service.inter.CustomerService;
 import com.project.credflow.service.inter.PaymentService;
 import jakarta.validation.Valid;
@@ -24,6 +26,7 @@ public class AdminCustomerController {
 
     private final CustomerService customerService;
     private final PaymentService paymentService;
+    private final AdminAiService adminAiService;
 
     @GetMapping("/{customerId}/history")
     public ResponseEntity<CustomerHistoryDto> getCustomerHistory(@PathVariable UUID customerId) {
@@ -37,7 +40,6 @@ public class AdminCustomerController {
         return ResponseEntity.ok(results);
     }
 
-
     @PostMapping("/{customerId}/manual-cure")
     public ResponseEntity<Void> manualCure(
             @PathVariable UUID customerId,
@@ -46,5 +48,11 @@ public class AdminCustomerController {
 
         paymentService.manuallyCureCustomer(customerId, adminUser, requestDto.getReason());
         return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/{customerId}/ai-summary")
+    public ResponseEntity<AiAdminSummaryDto> getAiCustomerSummary(@PathVariable UUID customerId) { // <-- 2. Update return type
+        AiAdminSummaryDto summary = adminAiService.generateCustomerSummary(customerId); // <-- 3. Get new DTO
+        return ResponseEntity.ok(summary); // <-- 4. Return new DTO
     }
 }

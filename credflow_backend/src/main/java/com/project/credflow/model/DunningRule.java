@@ -24,6 +24,7 @@ public class DunningRule {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
+    // Assuming your DB uses binary(16) for UUIDs. If not, remove columnDefinition.
     @Column(name = "rule_id", columnDefinition = "binary(16)")
     private UUID ruleId;
 
@@ -40,17 +41,17 @@ public class DunningRule {
     private Boolean isActive = true;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "applies_to_plan_type")
+    @Column(name = "applies_to_plan_type") // e.g., PREPAID, POSTPAID, ALL
     private PlanType appliesToPlanType;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "condition_type", nullable = false)
+    @Column(name = "condition_type", nullable = false) // e.g., DAYS_OVERDUE, DAYS_UNTIL_DUE
     private RuleConditionType conditionType;
 
-    @Column(name = "condition_value_integer")
+    @Column(name = "condition_value_integer") // Used for DAYS_OVERDUE, DAYS_UNTIL_DUE
     private Integer conditionValueInteger;
 
-    @Column(name = "condition_value_decimal", precision = 19, scale = 2)
+    @Column(name = "condition_value_decimal", precision = 19, scale = 2) // Used for MIN_AMOUNT_DUE
     private BigDecimal conditionValueDecimal;
 
     @Column(name = "condition_value_string", length = 50)
@@ -60,9 +61,10 @@ public class DunningRule {
     @Column(name = "action_type", nullable = false)
     private RuleActionType actionType;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "template_id", referencedColumnName = "template_id")
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "template_id", referencedColumnName = "template_id") // Links to NotificationTemplate
     private NotificationTemplate template;
+    // -----------------------------------------------------------
 
     @Enumerated(EnumType.STRING)
     @Column(name = "bpo_task_priority")

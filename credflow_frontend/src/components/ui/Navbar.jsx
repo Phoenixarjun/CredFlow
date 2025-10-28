@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { Sun, Moon, Menu, LogOut, Bell, User as UserIcon, ChevronDown } from 'lucide-react';
+import { Link, useLocation, useNavigate } from 'react-router-dom'; // <-- Added useNavigate
+import { Sun, Moon, Menu, LogOut, Bell, User as UserIcon, ChevronDown, Settings } from 'lucide-react'; // <-- Added Settings
 import { useTheme } from '@/context/ThemeProvider';
 import { useAuth } from '@/features/authentication/context/AuthContext';
 
@@ -10,6 +10,7 @@ const Navbar = ({ toggleMobileSidebar }) => {
     const [isProfileOpen, setIsProfileOpen] = useState(false);
     const location = useLocation();
     const profileRef = useRef(null);
+    const navigate = useNavigate(); // <-- Initialize useNavigate
 
     const isAuthPage = location.pathname === '/login' || location.pathname === '/register';
 
@@ -23,6 +24,12 @@ const Navbar = ({ toggleMobileSidebar }) => {
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
+    // --- Function to handle navigation to profile ---
+    const handleGoToProfile = () => {
+        setIsProfileOpen(false); // Close dropdown
+        navigate('/profile'); // Navigate
+    };
+
     return (
         <nav
             className={`fixed top-0 w-full h-16 z-50 transition-colors duration-300 backdrop-blur-lg flex items-center ${
@@ -33,6 +40,7 @@ const Navbar = ({ toggleMobileSidebar }) => {
         >
             <div className="w-full max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex justify-between items-center h-full">
+                    {/* Left side: Menu button, Logo */}
                     <div className="flex items-center">
                         {!isAuthPage && user && (
                             <button
@@ -50,21 +58,25 @@ const Navbar = ({ toggleMobileSidebar }) => {
                         </Link>
                     </div>
 
+                    {/* Right Side Icons */}
                     <div className="flex items-center space-x-2 sm:space-x-3">
+                        {/* Notifications */}
                         {!isAuthPage && user && (
-                             <button
-                                 className={`p-2 rounded-lg transition-colors duration-200 relative ${
-                                     theme === 'dark'
-                                         ? 'text-gray-300 hover:bg-gray-700/50'
-                                         : 'text-gray-600 hover:bg-blue-50'
-                                 }`}
-                                 aria-label="Notifications"
-                             >
-                                 <Bell size={20} />
-                                 <span className="absolute top-1.5 right-1.5 block h-2 w-2 rounded-full bg-red-500 ring-1 ring-white dark:ring-gray-900"></span>
-                             </button>
-                         )}
+                            <button
+                                className={`p-2 rounded-lg transition-colors duration-200 relative ${
+                                    theme === 'dark'
+                                        ? 'text-gray-300 hover:bg-gray-700/50'
+                                        : 'text-gray-600 hover:bg-blue-50'
+                                }`}
+                                aria-label="Notifications"
+                            >
+                                <Bell size={20} />
+                                {/* Optional notification indicator */}
+                                {/* <span className="absolute top-1.5 right-1.5 block h-2 w-2 rounded-full bg-red-500 ring-1 ring-white dark:ring-gray-900"></span> */}
+                            </button>
+                        )}
 
+                        {/* Theme Toggle */}
                         <button
                             onClick={toggleTheme}
                             className={`p-2 rounded-lg transition-colors duration-200 ${
@@ -77,8 +89,10 @@ const Navbar = ({ toggleMobileSidebar }) => {
                             {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
                         </button>
 
+                        {/* Profile Dropdown */}
                         {!isAuthPage && user && (
                             <div className="relative" ref={profileRef}>
+                                {/* Dropdown Trigger Button */}
                                 <button
                                     onClick={() => setIsProfileOpen(!isProfileOpen)}
                                     aria-haspopup="true"
@@ -102,25 +116,53 @@ const Navbar = ({ toggleMobileSidebar }) => {
                                     <ChevronDown size={16} className={`transition-transform duration-200 ${isProfileOpen ? 'rotate-180' : ''} ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} />
                                 </button>
 
+                                {/* Dropdown Menu Content */}
                                 {isProfileOpen && (
                                     <div
-                                     role="menu" aria-orientation="vertical" aria-labelledby="user-menu-button"
-                                     className={`absolute right-0 mt-2 w-48 rounded-lg shadow-xl py-1 transition-all ease-out duration-100 origin-top-right ring-1 ring-black ring-opacity-5 focus:outline-none ${
-                                        theme === 'dark'
-                                            ? 'bg-gray-800 border border-gray-700'
-                                            : 'bg-white border border-gray-200'
-                                    } ${isProfileOpen ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'}`} >
-                                        <div className="px-3 py-2 border-b border-gray-200 dark:border-gray-700">
+                                        role="menu" aria-orientation="vertical" aria-labelledby="user-menu-button"
+                                        className={`absolute right-0 mt-2 w-48 rounded-lg shadow-xl py-1 transition-all ease-out duration-100 origin-top-right ring-1 ring-black ring-opacity-5 focus:outline-none ${
+                                            theme === 'dark'
+                                                ? 'bg-gray-800 border border-gray-700'
+                                                : 'bg-white border border-gray-200'
+                                        } ${isProfileOpen ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'}`} >
+
+                                        {/* --- User Info Section (Now a Button) --- */}
+                                        <button
+                                            role="menuitem"
+                                            onClick={handleGoToProfile} // Use the new handler
+                                            className={`block w-full text-left px-3 py-2 border-b border-gray-200 dark:border-gray-700 transition-colors duration-200 ${
+                                                theme === 'dark' ? 'hover:bg-gray-700/50' : 'hover:bg-gray-100'
+                                            }`}
+                                        >
                                             <p className={`text-sm font-medium truncate ${theme === 'dark' ? 'text-gray-100' : 'text-gray-800'}`}>{user.fullName}</p>
                                             <p className="text-xs text-gray-500 dark:text-gray-400 capitalize">{user.roleName?.replace('_', ' ').toLowerCase()}</p>
-                                        </div>
+                                        </button>
+                                        {/* --- End User Info Button --- */}
+
+                                        {/* Optional: Add Profile Settings Link Separately if desired */}
+                                        {/*
+                                        <button
+                                            role="menuitem"
+                                            onClick={handleGoToProfile}
+                                            className={`flex items-center w-full px-3 py-2 text-sm transition-colors duration-200 ${
+                                                theme === 'dark'
+                                                    ? 'text-gray-300 hover:bg-gray-700/50'
+                                                    : 'text-gray-700 hover:bg-gray-100'
+                                            }`}
+                                        >
+                                            <Settings size={16} className="mr-2" />
+                                            Profile Settings
+                                        </button>
+                                        */}
+
+                                        {/* Logout Button */}
                                         <button
                                             role="menuitem"
                                             onClick={() => { logout(); setIsProfileOpen(false); }}
                                             className={`flex items-center w-full px-3 py-2 text-sm transition-colors duration-200 ${
                                                 theme === 'dark'
-                                                ? 'text-red-400 hover:bg-red-500/10'
-                                                : 'text-red-600 hover:bg-red-50'
+                                                    ? 'text-red-400 hover:bg-red-500/10'
+                                                    : 'text-red-600 hover:bg-red-50'
                                             }`}
                                         >
                                             <LogOut size={16} className="mr-2" />

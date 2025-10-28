@@ -1,39 +1,39 @@
 import React, { useState } from 'react';
-import { Flex, Heading, Text, Box, Button, Callout } from '@radix-ui/themes';
+import { Flex, Heading, Text, Box, Button, Callout, Card, SegmentedControl } from '@radix-ui/themes';
 import { PlusIcon, ExclamationTriangleIcon } from '@radix-ui/react-icons';
 
 // --- Import Hooks ---
 import { useDunningRules } from '../hooks/useDunningRules';
-import { useNotificationTemplates } from '../hooks/useNotificationTemplates'; // <-- Import new hook
+import { useNotificationTemplates } from '../hooks/useNotificationTemplates';
 
 // --- Import Components ---
 import RulesTable from '../components/RulesTable';
 import RuleFormModal from '../components/RuleFormModal';
+import DunningTimeline from '../components/DunningTimeline';
+import DailySchedulePlaceholder from '../components/DailySchedulePlaceholder';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
-import ErrorDisplay from '@/components/ui/ErrorDisplay';
+import ErrorDisplay from '@/components/ui/ErrorDisplay'; // Assuming you have ErrorDisplay
 
 const RulesManagementPage = () => {
-    // --- State for the modal ---
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [selectedRule, setSelectedRule] = useState(null); // null = new rule, object = edit rule
+    const [selectedRule, setSelectedRule] = useState(null);
+    const [viewMode, setViewMode] = useState('timeline');
 
-    // --- Data fetching hooks ---
-    const { 
-        rules, 
-        loading: rulesLoading, 
-        error: rulesError, 
-        addRule, 
-        updateRule, 
-        deleteRule 
+    const {
+        rules,
+        loading: rulesLoading,
+        error: rulesError,
+        addRule,
+        updateRule,
+        deleteRule
     } = useDunningRules();
-    
-    const { 
-        templates, 
-        loading: templatesLoading, 
-        error: templatesError 
-    } = useNotificationTemplates(); // <-- Use new hook
-    // console.log('Templates in Page:', templates);
-    // --- Handlers ---
+
+    const {
+        templates,
+        loading: templatesLoading,
+        error: templatesError
+    } = useNotificationTemplates();
+
     const handleOpenModal = (rule = null) => {
         setSelectedRule(rule);
         setIsModalOpen(true);
@@ -45,21 +45,15 @@ const RulesManagementPage = () => {
     };
 
     const handleSaveRule = async (formData) => {
-        // Use a try-catch to handle errors from the hook
         try {
             if (selectedRule && selectedRule.ruleId) {
-                // Update existing rule
                 await updateRule(selectedRule.ruleId, formData);
             } else {
-                // Create new rule
                 await addRule(formData);
             }
-            handleCloseModal(); // Close modal only on success
+            handleCloseModal();
         } catch (error) {
-            // Error is already logged by the hook
-            // You could show a toast notification here
             console.error("Failed to save rule:", error);
-            // Don't close modal, so user can see and fix errors
         }
     };
 
@@ -73,18 +67,16 @@ const RulesManagementPage = () => {
         }
     };
 
-    // --- Loading & Error States ---
     const isLoading = rulesLoading || templatesLoading;
     const combinedError = rulesError || templatesError;
 
     return (
         <Flex direction="column" gap="6">
-            {/* --- 1. Header --- */}
             <Flex justify="between" align="center">
                 <Box>
                     <Heading size="7">Dunning Rules Management</Heading>
                     <Text color="gray">
-                        Configure automated actions for overdue invoices.
+                        Configure and visualize automated actions for overdue invoices.
                     </Text>
                 </Box>
                 <Button size="3" onClick={() => handleOpenModal(null)}>
@@ -92,37 +84,68 @@ const RulesManagementPage = () => {
                 </Button>
             </Flex>
 
-            {/* --- 2. Content Area --- */}
-            {isLoading && <LoadingSpinner text="Loading rules data..." />}
-            
-            {combinedError && (
+            {/* --- Visualization Section with Toggle --- */}
+            <Card>
+                <Flex direction="column" gap="4">
+                    <Flex justify="between" align="center">
+                        <Heading size="4">Rule Visualization</Heading>
+                        <SegmentedControl.Root
+                            value={viewMode}
+                            onValueChange={setViewMode}
+                            size="2"
+                        >
+                            <SegmentedControl.Item value="timeline">Full Timeline</SegmentedControl.Item>
+                            <SegmentedControl.Item value="daily">Daily Schedule</SegmentedControl.Item>
+                        </SegmentedControl.Root>
+                    </Flex>
+
+                    {/* Conditional Rendering based on viewMode */}
+                     {/* Show loading/error specific to visualization */}
+                     {isLoading && <LoadingSpinner text="Loading visualization..."/>}
+                     {combinedError && !isLoading && <Text color="red" size="2">Could not load visualization data: {combinedError}</Text>}
+                     {!isLoading && !combinedError && (!rules || rules.length === 0) && (
+                         <Text color="gray" size="2">No rules available to visualize.</Text>
+                     )}
+                    {!isLoading && !combinedError && rules?.length > 0 && (
+                        viewMode === 'timeline' ? (
+                            <DunningTimeline rules={rules} />
+                        ) : (
+                            <DailySchedulePlaceholder />
+                        )
+                    )}
+                </Flex>
+            </Card>
+            {/* ------------------------------------------- */}
+
+
+            {/* --- Rules Table Section --- */}
+            <Heading size="5">All Configured Rules</Heading>
+            {/* Table Loading/Error is handled implicitly by the visualization check above */}
+            {isLoading && <LoadingSpinner text="Loading rules table..." />}
+
+            {combinedError && !isLoading && ( // Show table error only if loading finished
                 <Callout.Root color="red" role="alert">
-                    <Callout.Icon>
-                        <ExclamationTriangleIcon />
-                    </Callout.Icon>
-                    <Callout.Text>
-                        Error: {combinedError}
-                    </Callout.Text>
+                    <Callout.Icon> <ExclamationTriangleIcon /> </Callout.Icon>
+                    <Callout.Text> Error loading rules table: {combinedError} </Callout.Text>
                 </Callout.Root>
             )}
-            
+
             {!isLoading && !combinedError && (
-                // --- Render the table ---
-                <RulesTable 
-                    rules={rules} 
-                    onEdit={handleOpenModal} 
-                    onDelete={handleDeleteRule} 
+                <RulesTable
+                    rules={rules}
+                    onEdit={handleOpenModal}
+                    onDelete={handleDeleteRule}
                 />
             )}
+            {/* --------------------------- */}
 
-            {/* --- 3. Modal --- */}
-            {/* Render modal (it's hidden by default via Radix Dialog) */}
+
             <RuleFormModal
                 isOpen={isModalOpen}
                 onClose={handleCloseModal}
                 onSave={handleSaveRule}
                 rule={selectedRule}
-                templates={templates} // <-- Pass templates to the form
+                templates={templates}
             />
         </Flex>
     );

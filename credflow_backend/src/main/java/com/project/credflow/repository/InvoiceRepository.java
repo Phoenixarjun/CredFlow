@@ -5,6 +5,7 @@ import com.project.credflow.model.Invoice;
 import com.project.credflow.enums.InvoiceStatus; // <-- 1. IMPORT THE ENUM
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
@@ -45,4 +46,10 @@ public interface InvoiceRepository extends JpaRepository<Invoice, UUID> {
 
     List<Invoice> findByAccountAccountIdInOrderByDueDateDesc(List<UUID> accountIds);
 
+
+    @Query("SELECT inv FROM Invoice inv JOIN inv.account acc JOIN acc.plan p " +
+            "WHERE inv.status = com.project.credflow.enums.InvoiceStatus.PENDING " +
+            "AND p.planType = com.project.credflow.enums.PlanType.PREPAID " +
+            "AND inv.dueDate <= :lookaheadDate")
+    List<Invoice> findPendingPrepaidInvoicesDueBefore(@Param("lookaheadDate") LocalDate lookaheadDate);
 }

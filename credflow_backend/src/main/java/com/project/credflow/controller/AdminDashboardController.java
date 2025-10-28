@@ -23,7 +23,7 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/api/admin/dashboard")
 @RequiredArgsConstructor
-//@PreAuthorize("hasRole('ADMIN')") // <-- 3. UNCOMMENT THIS FOR SECURITY
+@PreAuthorize("hasRole('ADMIN')")
 public class AdminDashboardController {
 
     private final DunningEngineService dunningEngineService;

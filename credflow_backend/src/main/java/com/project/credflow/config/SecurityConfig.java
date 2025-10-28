@@ -83,6 +83,7 @@ public class SecurityConfig {
                         // Allow preflight OPTIONS requests for CORS
                         .requestMatchers(HttpMethod.OPTIONS, "/api/**").permitAll()
                         .requestMatchers(GET, "/api/plans").permitAll()
+
                         // Allow access to authentication endpoints
                         .requestMatchers("/api/auth/**").permitAll()
                         // Require ADMIN role for admin endpoints
